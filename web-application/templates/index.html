@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Автоматическая калибровка ТД</title>
+</head>
+<body>
+    <h1>Введите требуемые параметры:</h1>
+    <form action="{{ url_for('scan') }}" method="POST">
+        <label for="start_serial">Start Serial:</label>
+        <input type="text" name="первый ТД: TD_" id="start_serial" pattern="d{6}" required>
+        <br>
+        <label for="end_serial">End Serial:</label>
+        <input type="text" name="последний ТД: TD_" id="end_serial" pattern="d{6}" required>
+        <br>
+        <label for="timeout">Timeout (seconds):</label>
+        <input type="number" name="Время сканирования: " id="timeout" min="1" max="3600" required>
+        <br>
+        <button type="submit">Scan Devices</button>
+    </form>
+</body>
+</html>

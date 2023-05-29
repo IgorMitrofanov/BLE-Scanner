@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Scan Result</title>
+</head>
+<body>
+    <h1>Scan Result</h1>
+    <table>
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>MAC</th>
+                <th>RSSI</th>
+                <th>T</th>
+                <th>HK</th>
+                <th>LK</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for index, row in df.iterrows() %}
+            <tr style="background-color: {% if row.isnull().values.any() %}red{% else %}green{% endif %}">
+                <td>{{ row['Name'] }}</td>
+                <td>{{ row['MAC'] }}</td>
+                <td>{{ row['RSSI'] }}</td>
+                <td>{{ row['T'] }}</td>
+                <td>{{ row['HK'] }}</td>
+                <td>{{ row['LK'] }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    <div>
+        <progress value="{{ progress }}" max="100"></progress>
+        <br>
+        <form action="{{ url_for('scan') }}" method="POST">
+            <input type="hidden" name="start_serial" value="{{ request.form['start_serial'] }}">
+            <input type="hidden" name="end_serial" value="{{ request.form['end_serial'] }}">
+            <input type="hidden" name="timeout" value="{{ request.form['timeout'] }}">
+            <button type="submit">Scan Again</button>
+        </form>
+        <form action="{{ url_for('report') }}" method="POST">
+            <input type="hidden" name="data" value="{{ df.to_json() }}">
+            <button type="submit">Generate Report</button>
+        </form>
+    </div>
+</body>
+</html>

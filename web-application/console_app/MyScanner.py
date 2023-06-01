@@ -87,7 +87,7 @@ class MyScanner:
     
     def queue_connection(self, message):
         while not self.queue_devices_to_connect.empty():
-            print('Devices in queue:', self.queue_devices_to_connect.queue)
+            # print('Devices in queue:', self.queue_devices_to_connect.queue)
             device = self.queue_devices_to_connect.get()
             assistant = BleakClientAssistant(device)
             try:

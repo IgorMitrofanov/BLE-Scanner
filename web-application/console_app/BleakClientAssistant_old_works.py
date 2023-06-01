@@ -18,34 +18,37 @@ import asyncio
 import re
 
 class BleakClientAssistant:
-    def __init__(self, address, timeout=30):
-        self.address = address
+    def __init__(self, device, timeout=10):
+        self.device = device
         self.timeout = timeout
-        self.loop = asyncio.new_event_loop()
-        asyncio.set_event_loop(self.loop)
+        self.loop = asyncio.get_event_loop()
         self.client = None
         self.hk = None
         self.lk = None
 
     async def connect(self):
-        self.client = BleakClient(self.address, timeout=self.timeout, cache_timeout=600)
+        self.client = BleakClient(self.device, timeout=self.timeout, cache_timeout=600)
         try:
-            success = await self.client.is_connected()
-            if success:
-                await asyncio.sleep(1)  
-                await self.client.start_notify(14, self.callback)
-            else:
-                print("Failed to connect to device")
+            with tqdm(total=100, desc=f"Connecting and sending data on {self.device.name}:") as pbar:
+                success = await self.client.connect()
+                for i in range(100):
+                    pbar.update(1)
+                    await asyncio.sleep(0.001)
+                if success:
+                    await asyncio.sleep(1)  
+                    await self.client.start_notify(14, self.callback)
+                else:
+                    print("Failed to connect to device")
         except BleakError as e:
             print(f"Could not connect to device: {e}")
             for i in range(10):
                 print(f"Retrying connect {i+1}/10...")
                 try:
-                    with tqdm(total=100, desc=f"Connecting and sending data on {self.address}:") as pbar:
+                    with tqdm(total=100, desc=f"Connecting and sending data on {self.device.name}:") as pbar:
+                        success = await self.client.connect()
                         for i in range(100):
                             pbar.update(1)
                             await asyncio.sleep(0.01)
-                        success = await self.client.connect()
                         if success:
                             await asyncio.sleep(1)  
                             await self.client.start_notify(14, self.callback)
@@ -74,7 +77,7 @@ class BleakClientAssistant:
     async def callback(self, sender: int, data: bytearray):
         try:
             response = data.decode().strip()
-            print(f'Received notification from RX_char on {self.address}: {response}')
+            print(f'Received notification from RX_char on {self.device.name}: {response}')
             match = re.search(r"HK:1:(\d+),LK:1:(\d+)", response)
             if match:
                 self.hk = int(match.group(1))
@@ -89,9 +92,3 @@ class BleakClientAssistant:
             return self.hk, self.lk
         except Exception as e:
             print(f"Error in run (client): {e}")
-
-
-
-if __name__ == '__main__':
-    assistant = BleakClientAssistant('CA:17:37:73:61:98')
-    hl, lk = assistant.run(b'GA\r')

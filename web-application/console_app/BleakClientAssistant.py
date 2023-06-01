@@ -18,7 +18,7 @@ import asyncio
 import re
 
 class BleakClientAssistant:
-    def __init__(self, device, timeout=60):
+    def __init__(self, device, timeout=10):
         self.device = device
         self.timeout = timeout
         self.loop = asyncio.get_event_loop()
@@ -27,13 +27,13 @@ class BleakClientAssistant:
         self.lk = None
 
     async def connect(self):
-        self.client = BleakClient(self.device, timeout=self.timeout, cache_timeout=0)
+        self.client = BleakClient(self.device, timeout=self.timeout, cache_timeout=600)
         try:
             with tqdm(total=100, desc=f"Connecting and sending data on {self.device.name}:") as pbar:
                 success = await self.client.connect()
                 for i in range(100):
                     pbar.update(1)
-                    await asyncio.sleep(0.01)
+                    await asyncio.sleep(0.001)
                 if success:
                     await asyncio.sleep(1)  
                     await self.client.start_notify(14, self.callback)

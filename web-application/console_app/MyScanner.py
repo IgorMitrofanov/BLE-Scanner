@@ -90,6 +90,9 @@ class MyScanner:
             print('Devices in queue:', self.queue_devices_to_connect.queue)
             device = self.queue_devices_to_connect.get()
             assistant = BleakClientAssistant(device)
-            hk, lk = assistant.run(message)
-            self.dc.update_HK(device.name, hk)
-            self.dc.update_LK(device.name, lk)
+            try:
+                hk, lk = assistant.run(message)
+                self.dc.update_HK(device.name, hk)
+                self.dc.update_LK(device.name, lk)
+            except Exception as e:
+                print('Exception in Scanner (queue):', e)

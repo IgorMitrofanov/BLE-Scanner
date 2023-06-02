@@ -26,7 +26,7 @@ class BLEClient:
 
 async def main():
     client = BLEClient()
-    await client.connect("CA:17:37:73:61:98")
+    await client.connect("E2:F1:F3:8C:E1:45")
     await client.send_message(b'GA\r')
     await client.receive_notification()
     await client.disconnect()

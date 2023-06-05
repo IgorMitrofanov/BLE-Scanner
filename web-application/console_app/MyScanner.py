@@ -95,8 +95,8 @@ class MyScanner:
             self.queue_devices_to_connect.remove(random_device)
             try:
                 loop = asyncio.new_event_loop()
-                client_assistant = BleakClientAssistant(random_device, loop)
                 asyncio.set_event_loop(loop)
+                client_assistant = BleakClientAssistant(random_device, loop)
                 hk, lk = asyncio.run(client_assistant.run())
                 self.dc.update_HK(random_device.name, hk)
                 self.dc.update_LK(random_device.name, lk)

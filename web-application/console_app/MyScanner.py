@@ -7,7 +7,8 @@ except:
     from bleak import BleakScanner
 
 import asyncio
-from queue import Queue
+import random
+# from queue import Queue
 
 from DataCollector import DataCollector
 from adv_decrypt import adv_decrypt
@@ -19,7 +20,8 @@ class MyScanner:
         self.scanning = asyncio.Event()
         self.timeout = timeout
         self.dc = DataCollector(start_serial, end_serial, pattern)
-        self.queue_devices_to_connect = Queue()
+        self.queue_devices_to_connect = [] # Queue()
+        self.retry_devices_list = []
         self.loop = loop
 
     def detection_callback(self, device, advertisement_data):
@@ -27,7 +29,7 @@ class MyScanner:
             if device.name in self.dc.device_names: 
                 
                 
-                self.queue_devices_to_connect.put(device)
+                self.queue_devices_to_connect.append(device)
             
                 self.dc.device_names.remove(device.name)
             
@@ -52,10 +54,12 @@ class MyScanner:
                 if self.loop.time() > end_time or len(self.dc.device_names) == 0:
                     self.scanning.clear()
                     if len(self.dc.device_names) == 0:
-                        print('All devices have been found.')
+                        print('\t\tAll devices have been found.')
                         return
                     else:
-                        answer = input(f"Timeout. Can't find all devices ({len(self.dc.device_names)*100/self.dc.start_len:.2f}%): {self.dc.device_names}. Do you want to scan again? (Y for yes/ANY for no): ").lower()
+                        print(f"\t\tTimeout. Can't find all devices ({len(self.dc.device_names)*100/self.dc.start_len:.2f}%)")
+                        print(f'Devices not found: {self.dc.device_names}')
+                        answer = input(f"Do you want to scan again? (Y for yes/ANY for no): ").lower()
                         if answer == 'y':
                             self.scanning.set()
                             change_timeout = input(f"Would you like to change timeout? (Y for yes/ANY for no): ").lower()
@@ -86,16 +90,19 @@ class MyScanner:
         return self.dc.get_dataframe()
     
     def queue_connection(self, message):
-        while not self.queue_devices_to_connect.empty():
-            # print('Devices in queue:', self.queue_devices_to_connect.queue)
-            device = self.queue_devices_to_connect.get()
-            assistant = BleakClientAssistant(device)
+        while not len(self.queue_devices_to_connect) == 0:
+            random_device = random.choice(self.queue_devices_to_connect)
+            self.queue_devices_to_connect.remove(random_device)
             try:
-                hk, lk = assistant.run(message)
-                self.dc.update_HK(device.name, hk)
-                self.dc.update_LK(device.name, lk)
+                loop = asyncio.new_event_loop()
+                client_assistant = BleakClientAssistant(random_device, loop)
+                asyncio.set_event_loop(loop)
+                hk, lk = asyncio.run(client_assistant.run())
+                self.dc.update_HK(random_device.name, hk)
+                self.dc.update_LK(random_device.name, lk)
             except Exception as e:
                 print('Exception in Scanner (queue):', e)
+
 
 if __name__ == '__main__':
     loop = asyncio.new_event_loop()

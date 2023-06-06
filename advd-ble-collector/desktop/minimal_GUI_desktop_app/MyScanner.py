@@ -1,12 +1,6 @@
 import os
 
 try:
-    import pandas as pd
-except:
-    os.system('pip install pandas')
-    import pandas as pd
-
-try:
     from bleak import BleakScanner
 except:
     os.system('pip install bleak')
@@ -14,8 +8,13 @@ except:
 
 import asyncio
 
+from colorama import init, Fore, Style
+
+init()
+
 from DataCollector import DataCollector
 from adv_decrypt import adv_decrypt
+
 
 class MyScanner:
     def __init__(self, timeout, start_serial, end_serial, device_type, loop):
@@ -34,7 +33,7 @@ class MyScanner:
             
                 self.dc.device_names.remove(device.name)
             
-                print(f'found device with name: {device.name} {self.dc.start_len-len(self.dc.device_names)}/{self.dc.start_len}')
+                print(Fore.GREEN + f'found device with name: {device.name} {self.dc.start_len-len(self.dc.device_names)}/{self.dc.start_len}')
                 self.dc.update_char(device.name, 'MAC', device.address)
                 self.dc.update_char(device.name, 'RSSI', advertisement_data.rssi)
 
@@ -59,11 +58,11 @@ class MyScanner:
                     self.dc.update_char(device.name, 'Light', TH09_light_raw)
 
         except Exception as e:
-            print(f"Error in callback (scanner): {e}")
+            print(Fore.RED + f"Error in callback (scanner): {e}")
             
     async def run(self):
         try:
-            print(f'\t\tStarted scanning with {self.timeout} seconds timeout...')
+            print(Fore.GREEN + f'\t\tStarted scanning in {self.device_type}-mode with {self.timeout} seconds timeout...')
             await self._scanner.start()
             self.scanning.set()
             end_time = self.loop.time() + self.timeout
@@ -71,11 +70,11 @@ class MyScanner:
                 if self.loop.time() > end_time or len(self.dc.device_names) == 0:
                     self.scanning.clear()
                     if len(self.dc.device_names) == 0:
-                        print('\t\tAll devices have been found.')
+                        print(Fore.GREEN + '\t\tAll devices have been found.')
                         return
                     else:
-                        print(f"\t\tTimeout. Can't find all devices ({len(self.dc.device_names)*100/self.dc.start_len:.2f}%)")
-                        print(f'Devices not found: {self.dc.device_names}')
+                        print(Fore.RED + f"\t\tTimeout. Can't find all devices ({len(self.dc.device_names)*100/self.dc.start_len:.2f}%)")
+                        print(Fore.RED + f'Devices not found: {self.dc.device_names}')
                         answer = input(f"Do you want to scan again? (Y for yes/ANY for no): ").lower()
                         if answer == 'y':
                             self.scanning.set()
@@ -85,26 +84,26 @@ class MyScanner:
                                     new_timeout = int(input('Timeout secdonds (only int): '))
                                     self.timeout = new_timeout
                                     end_time = self.loop.time() + self.timeout
-                                    print(f'\t\tStarted scanning with {self.timeout} seconds timeout...')
+                                    print(Fore.YELLOW + f'\t\tStarted scanning with {self.timeout} seconds timeout...')
                                 except:
-                                    print('timeout can be int only!')
+                                    print(Fore.RED + 'timeout can be int only!')
                                     new_timeout = int(input('Timeout secdonds (only int):'))
                                     self.timeout = new_timeout
                                     end_time = self.loop.time() + self.timeout
-                                    print(f'\t\tStarted scanning with {self.timeout} seconds timeout...')
+                                    print(Fore.YELLOW + f'\t\tStarted scanning with {self.timeout} seconds timeout...')
                             else:
                                 end_time = self.loop.time() + self.timeout
-                                print(f'\t\tStarted scanning with {self.timeout} seconds timeout...')
+                                print(Fore.YELLOW + f'\t\tStarted scanning with {self.timeout} seconds timeout...')
                         else:
-                            print(f"Scan terminated. Devices no found: {self.dc.device_names}")
+                            print(Fore.RED + f"Scan terminated. Devices no found: {self.dc.device_names}")
                 else:
                     await asyncio.sleep(0.1)
             await self._scanner.stop()
         except Exception as e:
-            print(f"Error in run (scanner): {e}")
+            print(Fore.RED + f"Error in run (scanner): {e}")
 
     def get_dataframe(self):
         return self.dc.get_dataframe()
     
     def to_excel(self, xls_path):
-        self.dc.get_dataframe().to_excel(xls_path, sheet_name='advd-ble-collector-output', index=False)
+        self.dc.get_dataframe().to_excel(xls_path, sheet_name='advd-ble-collector-output')

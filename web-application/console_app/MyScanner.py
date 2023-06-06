@@ -16,7 +16,7 @@ from BleakClientAssistant import BleakClientAssistant
 
 class MyScanner:
     def __init__(self, timeout, start_serial, end_serial, pattern, loop):
-        self._scanner = BleakScanner(detection_callback=self.detection_callback)
+        self._scanner = BleakScanner(detection_callback=self.detection_callback, loop=loop)
         self.scanning = asyncio.Event()
         self.timeout = timeout
         self.dc = DataCollector(start_serial, end_serial, pattern)
@@ -29,7 +29,7 @@ class MyScanner:
             if device.name in self.dc.device_names: 
                 
                 
-                self.queue_devices_to_connect.append(device)
+                # self.queue_devices_to_connect.append(device)
             
                 self.dc.device_names.remove(device.name)
             
@@ -41,6 +41,9 @@ class MyScanner:
                 self.dc.update_oil_level(device.name, oil_level_raw)
                 self.dc.update_battery_voltage(device.name, battery_voltage)
                 self.dc.update_temp(device.name, TD_temp_raw)
+
+                self.queue_connection(b"GA\r", device)
+
         except Exception as e:
             print(f"Error in callback (scanner): {e}")
             
@@ -89,7 +92,16 @@ class MyScanner:
     def get_dataframe(self):
         return self.dc.get_dataframe()
     
-    def queue_connection(self, message):
+    def queue_connection(self, message, device):
+        try:
+            # loop = asyncio.new_event_loop()
+            # asyncio.set_event_loop(loop)
+            client_assistant = BleakClientAssistant(device, self.loop)
+            hk, lk = asyncio.run(client_assistant.run())
+            self.dc.update_HK(device.name, hk)
+            self.dc.update_LK(device.name, lk)
+        except Exception as e:
+                print('Exception in Scanner (queue):', e)
         while not len(self.queue_devices_to_connect) == 0:
             random_device = random.choice(self.queue_devices_to_connect)
             self.queue_devices_to_connect.remove(random_device)

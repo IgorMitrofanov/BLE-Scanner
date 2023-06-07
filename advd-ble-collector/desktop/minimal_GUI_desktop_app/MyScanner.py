@@ -8,6 +8,8 @@ except:
 
 import asyncio
 
+import datetime
+
 from colorama import init, Fore, Style
 
 init()
@@ -33,18 +35,19 @@ class MyScanner:
             
                 self.dc.device_names.remove(device.name)
             
-                print(Fore.GREEN + f'found device with name: {device.name} {self.dc.start_len-len(self.dc.device_names)}/{self.dc.start_len}')
+                print(Fore.GREEN + f'found device with name: {device.name} {self.dc.start_len-len(self.dc.device_names)}/{self.dc.start_len}'+ Style.RESET_ALL)
                 self.dc.update_char(device.name, 'MAC', device.address)
                 self.dc.update_char(device.name, 'RSSI', advertisement_data.rssi)
 
                 if self.device_type == 'TD':
 
-                    oil_level_raw, battery_voltage, TD_temp_raw, version_raw = adv_decrypt(advertisement_data.manufacturer_data[3862], device_type=self.device_type)
+                    oil_level_raw, battery_voltage, TD_temp_raw, version_raw, cnt_raw = adv_decrypt(advertisement_data.manufacturer_data[3862], device_type=self.device_type)
 
                     self.dc.update_char(device.name, 'Battery Voltage', battery_voltage)
                     self.dc.update_char(device.name, 'version', version_raw)
                     self.dc.update_char(device.name, 'Temperature', TD_temp_raw)
                     self.dc.update_char(device.name, 'Oil Level', oil_level_raw)
+                    self.dc.update_char(device.name, 'Period', cnt_raw)
 
 
                 elif self.device_type == 'TH':
@@ -74,7 +77,7 @@ class MyScanner:
                         return
                     else:
                         print(Fore.RED + f"\t\tTimeout. Can't find all devices ({len(self.dc.device_names)*100/self.dc.start_len:.2f}%)")
-                        print(Fore.RED + f'Devices not found: {self.dc.device_names}')
+                        print(Fore.RED + f'Devices not found: {self.dc.device_names}' + Style.RESET_ALL)
                         answer = input(f"Do you want to scan again? (Y for yes/ANY for no): ").lower()
                         if answer == 'y':
                             self.scanning.set()
@@ -106,4 +109,5 @@ class MyScanner:
         return self.dc.get_dataframe()
     
     def to_excel(self, xls_path):
-        self.dc.get_dataframe().to_excel(xls_path, sheet_name='advd-ble-collector-output')
+        date_and_time_write = datetime.datetime.now().strftime('%Y_%m_%d %H-%M')
+        self.dc.get_dataframe().to_excel(xls_path, sheet_name=date_and_time_write)

@@ -14,6 +14,8 @@ except:
 
 import asyncio
 
+import datetime
+
 from DataCollector import DataCollector
 from adv_decrypt import adv_decrypt
 
@@ -107,4 +109,5 @@ class MyScanner:
         return self.dc.get_dataframe()
     
     def to_excel(self, xls_path):
-        self.dc.get_dataframe().to_excel(xls_path, sheet_name='advd-ble-collector-output', index=False)
+        date_and_time_write = datetime.datetime.now().strftime('%Y_%m_%d %H-%M')
+        self.dc.get_dataframe().to_excel(xls_path, sheet_name=date_and_time_write)

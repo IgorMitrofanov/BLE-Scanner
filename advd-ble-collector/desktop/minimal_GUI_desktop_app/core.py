@@ -41,7 +41,7 @@ if report_path != 'WITHOUT_WRITE':
         print(Fore.YELLOW + f"Closing console in {i} seconds...")
         time.sleep(1)
 
-    sys.exit()
+    #sys.exit()
 else:
     print(Fore.RED + 'Warning: the mode without recording the report was selected')
     print(Fore.YELLOW + '\t\tProgram terminated.')
@@ -49,4 +49,4 @@ else:
         print(Fore.YELLOW + f"Closing console in {i} seconds...")
         time.sleep(1)
 
-    sys.exit()
+    #sys.exit()

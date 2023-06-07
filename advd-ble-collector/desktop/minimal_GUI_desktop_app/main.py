@@ -1,27 +1,17 @@
 import os
 
-try:
-    import tkinter as tk
-    import tkinter as tk
-    from tkinter import filedialog
-except:
-    os.system('pip install tkinter')
-    import tkinter as tk
-    import tkinter as tk
-    from tkinter import filedialog
+import tkinter as tk
+import tkinter as tk
+from tkinter import filedialog
 
-try:
-    import subprocess
-except:
-    os.system('pip install subprocess')
-    import subprocess
+import subprocess
 
 class ScannerGUI:
     def __init__(self, master):
         self.master = master
         self.generate_report = False
 
-        master.title("advd-ble-collector 1.0")
+        master.title("Set the scan parameters:")
 
         master.geometry("300x300+{}+{}".format(int(master.winfo_screenwidth()/2 - 400), int(master.winfo_screenheight()/2 - 300)))
 

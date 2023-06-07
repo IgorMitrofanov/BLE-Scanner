@@ -92,12 +92,22 @@ class MyScanner:
     def get_dataframe(self):
         return self.dc.get_dataframe()
     
+    def run_client_assistant():
+        client_assistant = BleakClientAssistant(device, self.loop)
+        hk, lk = await client_assistant.run()
+        return hk, lk
+    
     def queue_connection(self, message, device):
         try:
             # loop = asyncio.new_event_loop()
             # asyncio.set_event_loop(loop)
             client_assistant = BleakClientAssistant(device, self.loop)
-            hk, lk = asyncio.run(client_assistant.run())
+            await client_assistant.run()
+            # task = loop.create_task(client_assistant.run())
+            # hk, lk = asyncio.run(client_assistant.run())
+
+            task = asyncio.create_task(run_client_assistant(device))
+
             self.dc.update_HK(device.name, hk)
             self.dc.update_LK(device.name, lk)
         except Exception as e:

@@ -1,15 +1,6 @@
 import os
+import pandas as pd
 
-try:
-    import numpy as np
-except:
-    os.system('pip install numpy')
-    import numpy as np
-
-try:
-    import pandas as pd
-except:
-    os.system('pip install pandas')
 
 class DataCollector:
     def __init__(self, start_serial, end_serial, device_type):
@@ -27,7 +18,8 @@ class DataCollector:
                                     'version': [None] * len(self.device_names),
                                     'Battery Voltage': [None] * len(self.device_names),
                                     'Temperature': [None] * len(self.device_names),
-                                    'Oil Level' : [None] * len(self.device_names)})
+                                    'Oil Level' : [None] * len(self.device_names),
+                                    'Period': [None] * len(self.device_names)})
         elif device_type == 'TH':
         
             self.df = pd.DataFrame({'Name': self.device_names, 

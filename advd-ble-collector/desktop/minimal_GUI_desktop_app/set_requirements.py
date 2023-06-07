@@ -1,1 +1,0 @@
-pip install -r set_requirements.txt

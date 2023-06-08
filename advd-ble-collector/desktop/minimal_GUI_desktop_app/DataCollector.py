@@ -24,7 +24,7 @@ class DataCollector:
             self.df = pd.DataFrame({'Name': self.device_names, 
                                     'MAC': [None] * len(self.device_names),
                                     'RSSI': [None] * len(self.device_names),
-                                    'version': [None] * len(self.device_names),
+                                ``    'version': [None] * len(self.device_names),
                                     'Battery Voltage': [None] * len(self.device_names),
                                     'Temperature': [None] * len(self.device_names),
                                     'Oil Level' : [None] * len(self.device_names),

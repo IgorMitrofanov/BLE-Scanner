@@ -8,11 +8,19 @@ except:
 
 import asyncio
 import random
+import datetime
 # from queue import Queue
 
 from DataCollector import DataCollector
 from adv_decrypt import adv_decrypt
 from BleakClientAssistant import BleakClientAssistant
+
+try:
+    from colorama import init, Fore, Style
+except:
+    os.system('pip install colorama==0.4.6')
+
+init()
 
 class MyScanner:
     def __init__(self, timeout, start_serial, end_serial, pattern, loop):
@@ -29,27 +37,31 @@ class MyScanner:
             if device.name in self.dc.device_names: 
                 
                 
-                # self.queue_devices_to_connect.append(device)
+                self.queue_devices_to_connect.append(device)
             
                 self.dc.device_names.remove(device.name)
             
-                print(f'found device with name: {device.name} {self.dc.start_len-len(self.dc.device_names)}/{self.dc.start_len}')
-                self.dc.update_MAC(device.name, device.address)
-                self.dc.update_RSSI(device.name, advertisement_data.rssi)
-            
-                oil_level_raw, battery_voltage, TD_temp_raw = adv_decrypt(advertisement_data.manufacturer_data[3862])
-                self.dc.update_oil_level(device.name, oil_level_raw)
-                self.dc.update_battery_voltage(device.name, battery_voltage)
-                self.dc.update_temp(device.name, TD_temp_raw)
+                print(Fore.GREEN + f'found device with name: {device.name} {self.dc.start_len-len(self.dc.device_names)}/{self.dc.start_len}'+ Style.RESET_ALL)
 
-                self.queue_connection(b"GA\r", device)
+
+                self.dc.update_char(device.name, 'MAC', device.address)
+                self.dc.update_char(device.name, 'RSSI', advertisement_data.rssi)
+
+                oil_level_raw, battery_voltage, TD_temp_raw, version_raw, cnt_raw = adv_decrypt(advertisement_data.manufacturer_data[3862])
+
+                self.dc.update_char(device.name, 'Battery Voltage', battery_voltage)
+                self.dc.update_char(device.name, 'version', version_raw)
+                self.dc.update_char(device.name, 'Temperature', TD_temp_raw)
+                self.dc.update_char(device.name, 'Oil Level', oil_level_raw)
+                self.dc.update_char(device.name, 'Period', cnt_raw)
+
 
         except Exception as e:
-            print(f"Error in callback (scanner): {e}")
+            print(Fore.RED + f"Error in callback (scanner): {e}")
             
     async def run(self):
         try:
-            print(f'\t\tStarted scanning with {self.timeout} seconds timeout...')
+            print(Fore.GREEN + f'\t\tStarted scanning with {self.timeout} seconds timeout...')
             await self._scanner.start()
             self.scanning.set()
             end_time = self.loop.time() + self.timeout
@@ -57,11 +69,11 @@ class MyScanner:
                 if self.loop.time() > end_time or len(self.dc.device_names) == 0:
                     self.scanning.clear()
                     if len(self.dc.device_names) == 0:
-                        print('\t\tAll devices have been found.')
-                        return
+                        print(Fore.GREEN + '\t\tAll devices have been found.')
+                        break
                     else:
-                        print(f"\t\tTimeout. Can't find all devices ({len(self.dc.device_names)*100/self.dc.start_len:.2f}%)")
-                        print(f'Devices not found: {self.dc.device_names}')
+                        print(Fore.RED + f"\t\tTimeout. Can't find all devices ({len(self.dc.device_names)*100/self.dc.start_len:.2f}%)")
+                        print(Fore.RED + f'Devices not found: {self.dc.device_names}' + Style.RESET_ALL)
                         answer = input(f"Do you want to scan again? (Y for yes/ANY for no): ").lower()
                         if answer == 'y':
                             self.scanning.set()
@@ -71,60 +83,46 @@ class MyScanner:
                                     new_timeout = int(input('Timeout secdonds (only int): '))
                                     self.timeout = new_timeout
                                     end_time = self.loop.time() + self.timeout
-                                    print(f'\t\tStarted scanning with {self.timeout} seconds timeout...')
+                                    print(Fore.GREEN + f'\t\tStarted scanning with {self.timeout} seconds timeout...')
                                 except:
-                                    print('timeout can be int only!')
+                                    print(Fore.RED + 'timeout can be int only!')
                                     new_timeout = int(input('Timeout secdonds (only int):'))
                                     self.timeout = new_timeout
                                     end_time = self.loop.time() + self.timeout
-                                    print(f'\t\tStarted scanning with {self.timeout} seconds timeout...')
+                                    print(Fore.YELLOW + f'\t\tStarted scanning with {self.timeout} seconds timeout...')
                             else:
                                 end_time = self.loop.time() + self.timeout
-                                print(f'\t\tStarted scanning with {self.timeout} seconds timeout...')
+                                print(Fore.YELLOW + f'\t\tStarted scanning with {self.timeout} seconds timeout...')
                         else:
-                            print(f"Scan terminated. Devices no found: {self.dc.device_names}")
+                            print(Fore.RED + f"Scan terminated. Devices no found: {self.dc.device_names}")
                 else:
                     await asyncio.sleep(0.1)
             await self._scanner.stop()
+            await self.queue_to_connection(self.loop)
         except Exception as e:
-            print(f"Error in run (scanner): {e}")
+            print(Fore.RED + f"Error in run (scanner): {e}")
 
     def get_dataframe(self):
         return self.dc.get_dataframe()
     
-    def run_client_assistant():
-        client_assistant = BleakClientAssistant(device, self.loop)
+    def to_excel(self, xls_path):
+        date_and_time_write = datetime.datetime.now().strftime('%Y_%m_%d %H-%M')
+        self.dc.get_dataframe().to_excel(xls_path, sheet_name=date_and_time_write)
+
+    async def connect_device(self, device, loop):
+        client_assistant = BleakClientAssistant(device, loop)
         hk, lk = await client_assistant.run()
-        return hk, lk
-    
-    def queue_connection(self, message, device):
-        try:
-            # loop = asyncio.new_event_loop()
-            # asyncio.set_event_loop(loop)
-            client_assistant = BleakClientAssistant(device, self.loop)
-            await client_assistant.run()
-            # task = loop.create_task(client_assistant.run())
-            # hk, lk = asyncio.run(client_assistant.run())
+        if hk == 0 and lk == 0:
+            self.queue_devices_to_connect.append(device)
+        else:
+            self.dc.update_char(device.name, 'HK', hk)
+            self.dc.update_char(device.name, 'LK', lk)
 
-            task = asyncio.create_task(run_client_assistant(device))
-
-            self.dc.update_HK(device.name, hk)
-            self.dc.update_LK(device.name, lk)
-        except Exception as e:
-                print('Exception in Scanner (queue):', e)
+    async def queue_to_connection(self, loop):
         while not len(self.queue_devices_to_connect) == 0:
             random_device = random.choice(self.queue_devices_to_connect)
             self.queue_devices_to_connect.remove(random_device)
-            try:
-                loop = asyncio.new_event_loop()
-                asyncio.set_event_loop(loop)
-                client_assistant = BleakClientAssistant(random_device, loop)
-                hk, lk = asyncio.run(client_assistant.run())
-                self.dc.update_HK(random_device.name, hk)
-                self.dc.update_LK(random_device.name, lk)
-            except Exception as e:
-                print('Exception in Scanner (queue):', e)
-
+            await self.connect_device(random_device, loop)
 
 if __name__ == '__main__':
     loop = asyncio.new_event_loop()

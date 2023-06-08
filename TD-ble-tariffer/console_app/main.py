@@ -20,4 +20,4 @@ if __name__ == '__main__':
     my_scanner = MyScanner(timeout=timeout, start_serial=start_serial, end_serial=end_serial, pattern='TD_', loop=loop)
     loop.run_until_complete(my_scanner.run())
     print(Fore.GREEN + '\t\tData preview:'+ Style.RESET_ALL)
-    print(my_scanner.get_dataframe().head())
+    print(my_scanner.get_dataframe().head(10))

@@ -31,8 +31,9 @@ class MyScanner:
         self.queue_devices_to_connect = [] # Queue()
         self.retry_devices_list = []
         self.loop = loop
+        self.con_count = 0
 
-    def detection_callback(self, device, advertisement_data):
+    async def detection_callback(self, device, advertisement_data):
         try:
             if device.name in self.dc.device_names: 
                 
@@ -54,7 +55,6 @@ class MyScanner:
                 self.dc.update_char(device.name, 'Temperature', TD_temp_raw)
                 self.dc.update_char(device.name, 'Oil Level', oil_level_raw)
                 self.dc.update_char(device.name, 'Period', cnt_raw)
-
 
         except Exception as e:
             print(Fore.RED + f"Error in callback (scanner): {e}")
@@ -89,10 +89,10 @@ class MyScanner:
                                     new_timeout = int(input('Timeout secdonds (only int):'))
                                     self.timeout = new_timeout
                                     end_time = self.loop.time() + self.timeout
-                                    print(Fore.YELLOW + f'\t\tStarted scanning with {self.timeout} seconds timeout...')
+                                    print(Fore.GREEN + f'\t\tStarted scanning with {self.timeout} seconds timeout...')
                             else:
                                 end_time = self.loop.time() + self.timeout
-                                print(Fore.YELLOW + f'\t\tStarted scanning with {self.timeout} seconds timeout...')
+                                print(Fore.GREEN + f'\t\tStarted scanning with {self.timeout} seconds timeout...')
                         else:
                             print(Fore.RED + f"Scan terminated. Devices no found: {self.dc.device_names}")
                 else:
@@ -111,18 +111,19 @@ class MyScanner:
 
     async def connect_device(self, device, loop):
         client_assistant = BleakClientAssistant(device, loop)
-        hk, lk = await client_assistant.run()
-        if hk == 0 and lk == 0:
+        hk, lk, ss_count = await client_assistant.run()
+        if hk == 0 and lk == 0 and ss_count == 0:
             self.queue_devices_to_connect.append(device)
         else:
             self.dc.update_char(device.name, 'HK', hk)
             self.dc.update_char(device.name, 'LK', lk)
+            self.con_count += ss_count
 
     async def queue_to_connection(self, loop):
         while not len(self.queue_devices_to_connect) == 0:
             random_device = random.choice(self.queue_devices_to_connect)
             self.queue_devices_to_connect.remove(random_device)
-            print(Fore.GREEN + f'Trying to connect {random_device}')
+            print(Fore.GREEN + f'Trying to connect {random_device}... {self.dc.start_len-len(self.queue_devices_to_connect)}/{self.dc.start_len}')
             await self.connect_device(random_device, loop)
 
 if __name__ == '__main__':

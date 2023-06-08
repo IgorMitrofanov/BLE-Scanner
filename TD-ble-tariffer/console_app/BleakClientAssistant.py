@@ -28,7 +28,6 @@ class BleakClientAssistant:
 
     async def run(self):
         try:
-            print(Fore.GREEN + f'\t\tTrying to connect {self.device.name}...')
             async with BleakClient(self.device, timeout=self.timeout, detection_callback=self.notification_callback, loop=self.loop) as client:
                # client = BleakClient(self.device, timeout=self.timeout)
                # await client.connect()
@@ -39,13 +38,26 @@ class BleakClientAssistant:
                     await client.disconnect()
 
         except Exception as e:
-            print(Fore.RED + f"Error: {e}")
-            await asyncio.sleep(0.1)
+            if str(e).startswith("Could not get"):
+                try:
+                    async with BleakClient(self.device, timeout=self.timeout, detection_callback=self.notification_callback, loop=self.loop) as client:
+                        # client = BleakClient(self.device, timeout=self.timeout)
+                        # await client.connect()
+                        if client is not None:
+                            await client.start_notify(14, self.notification_callback)
+                            await client.write_gatt_char(12, b"GA\r", response=True) # сообщение для получения всех характеристик, дальнеший парсинг строки и получение hk и lk завершает цикл событий
+                            await asyncio.sleep(0.1)
+                            await client.disconnect()
+                except:
+                    print()
+            else:
+                await asyncio.sleep(0.1)
         finally:
             if self.hk and self.lk is not None:
                 print(Fore.GREEN + '\t\tSuccess!')
                 return self.hk, self.lk
             else:
+                print(Fore.RED + '\t\Failed!')
                 return 0, 0
 
     def notification_callback(self, sender, data):

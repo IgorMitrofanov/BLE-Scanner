@@ -122,6 +122,7 @@ class MyScanner:
         while not len(self.queue_devices_to_connect) == 0:
             random_device = random.choice(self.queue_devices_to_connect)
             self.queue_devices_to_connect.remove(random_device)
+            print(Fore.GREEN + f'Trying to connect {random_device}')
             await self.connect_device(random_device, loop)
 
 if __name__ == '__main__':

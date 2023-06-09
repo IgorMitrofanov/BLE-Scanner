@@ -1,34 +1,37 @@
-import asyncio
-from MyScanner import MyScanner
-
 import sys
-from PyQt6.QtWidgets import QApplication, QWidget, QLabel, QComboBox, QSpinBox, QPushButton, QFileDialog, QTextEdit, QVBoxLayout, QHBoxLayout
+from PyQt6.QtWidgets import QApplication, QWidget, QLabel, QComboBox, QSpinBox, QPushButton, QFileDialog, QTextEdit, QVBoxLayout, QHBoxLayout, QLineEdit
 from MyScanner import MyScanner
+import asyncio
 
 class MainWindow(QWidget):
     def __init__(self):
         super().__init__()
+
+        self.setWindowTitle("ADVD-BLE-Collector")
 
         # Создаем виджеты
         self.label1 = QLabel("Выберите тип устройства:")
         self.combo_box = QComboBox()
         self.combo_box.addItem("TH")
         self.combo_box.addItem("TD")
+        self.combo_box.setCurrentIndex(1)
 
         self.label2 = QLabel("Введите начальный серийный номер:")
         self.start_serial_spinbox = QSpinBox()
         self.start_serial_spinbox.setMinimum(0)
         self.start_serial_spinbox.setMaximum(999999)
+        self.start_serial_spinbox.setValue(100001)
 
         self.label3 = QLabel("Введите конечный серийный номер:")
         self.end_serial_spinbox = QSpinBox()
         self.end_serial_spinbox.setMinimum(0)
         self.end_serial_spinbox.setMaximum(999999)
+        self.end_serial_spinbox.setValue(100001)
 
         self.label4 = QLabel("Введите таймаут:")
         self.timeout_spinbox = QSpinBox()
         self.timeout_spinbox.setMinimum(1)
-        self.timeout_spinbox.setMaximum(60)
+        self.timeout_spinbox.setMaximum(1000)
 
         self.scan_button = QPushButton("Сканировать")
         self.scan_button.clicked.connect(self.scan_devices)
@@ -78,11 +81,11 @@ class MainWindow(QWidget):
         self.timeout = self.timeout_spinbox.value()
 
         # Запускаем сканирование устройств
-        my_scanner = MyScanner(loop=asyncio.get_event_loop(), timeout=self.timeout, start_serial=self.start_serial, end_serial=self.end_serial, device_type=self.device_type)
-        result = my_scanner.run()
-
-        # Выводим результат в текстовое поле
-        self.result_textedit.setText(str(result))
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
+        my_scanner = MyScanner(timeout=self.timeout, start_serial=self.start_serial, end_serial=self.end_serial, device_type=self.device_type, loop=loop)
+        result = loop.run_until_complete(my_scanner.run())
+        self.result_textedit.append(str(result))
 
     def save_logs(self):
         # Выбираем папку для сохранения логов
@@ -97,38 +100,3 @@ if __name__ == '__main__':
     window = MainWindow()
     window.show()
     sys.exit(app.exec())
-
-
-
-'''
-
-if __name__ == '__main__':
-    loop = asyncio.new_event_loop()
-    asyncio.set_event_loop(loop)
-    devices_type_list = ['1. TH', '2. TD']
-    [print(device_type) for device_type in devices_type_list]
-    device_type_num = int(input('Choice device type (1 or 2): '))
-    if device_type_num == 1:
-        device_type = 'TH'
-    elif device_type_num == 2:
-        device_type = 'TD'
-    start_serial = int(input('Type start serial (only six numers): '))
-    end_serial = int(input('Type end serial (only six numers): '))
-    timeout = int(input('Type time in seconds for timeout scanning: '))
-    my_scanner = MyScanner(timeout=timeout, start_serial=start_serial, end_serial=end_serial, device_type=device_type, loop=loop)
-    loop.run_until_complete(my_scanner.run())
-    print('\t\tData preview:')
-    print(my_scanner.get_dataframe().head())
-    write_or_not = input(f"Would you like to save data in xlsx? (Y for yes/ANY for no): ").lower()
-    if write_or_not == 'y':
-        path = str(input('Type path to excel file (example: C:/Users/User/Desktop/TH/): '))
-        filename = str(input('Type name of excel file (example: 100001-100102): '))
-
-        xls_path = path + filename + '.xlsx'
-
-        my_scanner.to_excel(xls_path)
-        print(f'File writed to {path} with name {filename}.xlsx')
-        print('Program terminated.')
-    else:
-        print('Program terminated.')
-'''

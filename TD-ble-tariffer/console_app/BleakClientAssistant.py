@@ -19,23 +19,24 @@ import asyncio
 import re
 
 class BleakClientAssistant:
-    def __init__(self, device, loop, timeout=30):
+    def __init__(self, device):
         self.device = device
-        self.loop = loop
-        self.timeout = timeout
+       # self.timeout = timeout
         self.hk = None
         self.lk = None
         self.ss_count = 0
 
     async def run(self):
         try:
-            async with BleakClient(self.device, timeout=self.timeout, detection_callback=self.notification_callback, loop=self.loop) as client:
-               # client = BleakClient(self.device, timeout=self.timeout)
-               # await client.connect()
+            print(Fore.GREEN + f'Trying to connect {self.device}...' )
+            async with BleakClient(self.device) as client:
                 if client is not None:
                     await client.start_notify(14, self.notification_callback)
-                    await client.write_gatt_char(12, b"GA\r", response=True) # сообщение для получения всех характеристик, дальнеший парсинг строки и получение hk и lk завершает цикл событий
+                    await client.write_gatt_char(12, b"GA\r") 
                     await asyncio.sleep(1)
+                    await client.disconnect()
+                    await asyncio.sleep(1)
+                else:
                     await client.disconnect()
                     await asyncio.sleep(1)
         except Exception as e:
@@ -50,15 +51,8 @@ class BleakClientAssistant:
                 return 0, 0, 0
 
     def notification_callback(self, sender, data):
+        print(data)
         match = re.search(b"HK:1:(\d+),LK:1:(\d+)", data)
         if match:
             self.hk = int(match.group(1))
             self.lk = int(match.group(2))
-
-if __name__ == '__main__':
-    address = "D3:18:4D:CC:A0:8B"
-    loop = asyncio.new_event_loop()
-    client_assistant = BleakClientAssistant(address, loop)
-    asyncio.set_event_loop(loop)
-    hk, lk = asyncio.run(client_assistant.run())
-    print(hk, lk)

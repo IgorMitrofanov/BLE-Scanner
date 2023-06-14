@@ -3,7 +3,7 @@ import os
 try:
     from bleak import BleakScanner
 except:
-    os.system('pip install bleak')
+    os.system('pip install bleak==0.20.2')
     from bleak import BleakScanner
 
 import asyncio
@@ -23,15 +23,15 @@ except:
 init()
 
 class MyScanner:
-    def __init__(self, timeout, start_serial, end_serial, pattern, loop):
+    def __init__(self, timeout, start_serial, end_serial, device_type, loop):
         self._scanner = BleakScanner(detection_callback=self.detection_callback, loop=loop)
         self.scanning = asyncio.Event()
         self.timeout = timeout
-        self.dc = DataCollector(start_serial, end_serial, pattern)
+        self.dc = DataCollector(start_serial, end_serial, device_type)
         self.queue_devices_to_connect = [] # Queue()
         self.retry_devices_list = []
         self.loop = loop
-        self.con_count = 0
+        self.device_type = device_type
 
     async def detection_callback(self, device, advertisement_data):
         try:
@@ -48,7 +48,7 @@ class MyScanner:
                 self.dc.update_char(device.name, 'MAC', device.address)
                 self.dc.update_char(device.name, 'RSSI', advertisement_data.rssi)
 
-                oil_level_raw, battery_voltage, TD_temp_raw, version_raw, cnt_raw = adv_decrypt(advertisement_data.manufacturer_data[3862])
+                oil_level_raw, battery_voltage, TD_temp_raw, version_raw, cnt_raw = adv_decrypt(advertisement_data.manufacturer_data[3862], device_type=self.device_type)
 
                 self.dc.update_char(device.name, 'Battery Voltage', battery_voltage)
                 self.dc.update_char(device.name, 'version', version_raw)
@@ -61,7 +61,7 @@ class MyScanner:
             
     async def run(self):
         try:
-            print(Fore.GREEN + f'\t\tStarted scanning with {self.timeout} seconds timeout...')
+            print(Style.RESET_ALL + datetime.datetime.now().strftime('%Y/%m/%d %H:%M') + Fore.GREEN + f'\t\tStarted scanning with {self.timeout} seconds timeout...')
             await self._scanner.start()
             self.scanning.set()
             end_time = self.loop.time() + self.timeout
@@ -69,11 +69,11 @@ class MyScanner:
                 if self.loop.time() > end_time or len(self.dc.device_names) == 0:
                     self.scanning.clear()
                     if len(self.dc.device_names) == 0:
-                        print(Fore.GREEN + '\t\tAll devices have been found.')
+                        print(Style.RESET_ALL + datetime.datetime.now().strftime('%Y/%m/%d %H:%M') + Fore.GREEN + '\t\tAll devices have been found.')
                         break
                     else:
-                        print(Fore.RED + f"\t\tTimeout. Can't find all devices ({len(self.dc.device_names)*100/self.dc.start_len:.2f}%)")
-                        print(Fore.RED + f'Devices not found: {self.dc.device_names}' + Style.RESET_ALL)
+                        print(Style.RESET_ALL + datetime.datetime.now().strftime('%Y/%m/%d %H:%M') + Fore.RED + f"\t\tTimeout. Can't find all devices ({len(self.dc.device_names)*100/self.dc.start_len:.2f}%)")
+                        print(Style.RESET_ALL + datetime.datetime.now().strftime('%Y/%m/%d %H:%M') + Fore.RED + f'Devices not found: {self.dc.device_names}' + Style.RESET_ALL)
                         answer = input(f"Do you want to scan again? (Y for yes/ANY for no): ").lower()
                         if answer == 'y':
                             self.scanning.set()
@@ -83,21 +83,23 @@ class MyScanner:
                                     new_timeout = int(input('Timeout secdonds (only int): '))
                                     self.timeout = new_timeout
                                     end_time = self.loop.time() + self.timeout
-                                    print(Fore.GREEN + f'\t\tStarted scanning with {self.timeout} seconds timeout...')
+                                    print(Style.RESET_ALL + datetime.datetime.now().strftime('%Y/%m/%d %H:%M') + Fore.GREEN + f'\t\tStarted scanning with {self.timeout} seconds timeout...')
                                 except:
                                     print(Fore.RED + 'timeout can be int only!')
                                     new_timeout = int(input('Timeout secdonds (only int):'))
                                     self.timeout = new_timeout
                                     end_time = self.loop.time() + self.timeout
-                                    print(Fore.GREEN + f'\t\tStarted scanning with {self.timeout} seconds timeout...')
+                                    print(Style.RESET_ALL + datetime.datetime.now().strftime('%Y/%m/%d %H:%M') + Fore.GREEN + f'\t\tStarted scanning with {self.timeout} seconds timeout...')
                             else:
                                 end_time = self.loop.time() + self.timeout
-                                print(Fore.GREEN + f'\t\tStarted scanning with {self.timeout} seconds timeout...')
+                                print(Style.RESET_ALL + datetime.datetime.now().strftime('%Y/%m/%d %H:%M') + Fore.GREEN + f'\t\tStarted scanning with {self.timeout} seconds timeout...')
                         else:
-                            print(Fore.RED + f"Scan terminated. Devices no found: {self.dc.device_names}")
+                            print(Style.RESET_ALL + datetime.datetime.now().strftime('%Y/%m/%d %H:%M') + Fore.RED + f"Scan terminated. Devices no found: {self.dc.device_names}")
                 else:
                     await asyncio.sleep(0.1)
+            await asyncio.sleep(0.1)
             await self._scanner.stop()
+            await asyncio.sleep(0.1)
             await self.queue_to_connection(self.loop)
         except Exception as e:
             print(Fore.RED + f"Error in run (scanner): {e}")
@@ -106,24 +108,24 @@ class MyScanner:
         return self.dc.get_dataframe()
     
     def to_excel(self, xls_path):
-        date_and_time_write = datetime.datetime.now().strftime('%Y_%m_%d %H-%M')
+        date_and_time_write = datetime.datetime.now().strftime('%Y_%m_%d %H_%M')
         self.dc.get_dataframe().to_excel(xls_path, sheet_name=date_and_time_write)
 
     async def connect_device(self, device, loop):
-        client_assistant = BleakClientAssistant(device, loop)
+        print(asyncio.all_tasks())
+        client_assistant = BleakClientAssistant(device)
         hk, lk, ss_count = await client_assistant.run()
         if hk == 0 and lk == 0 and ss_count == 0:
             self.queue_devices_to_connect.append(device)
         else:
             self.dc.update_char(device.name, 'HK', hk)
             self.dc.update_char(device.name, 'LK', lk)
-            self.con_count += ss_count
 
     async def queue_to_connection(self, loop):
         while not len(self.queue_devices_to_connect) == 0:
             random_device = random.choice(self.queue_devices_to_connect)
             self.queue_devices_to_connect.remove(random_device)
-            print(Fore.GREEN + f'Trying to connect {random_device}... {self.dc.start_len-len(self.queue_devices_to_connect)}/{self.dc.start_len}')
+            print(Style.RESET_ALL + datetime.datetime.now().strftime('%Y/%m/%d %H:%M') + Fore.GREEN + f'\t\tConnection count: {self.dc.start_len-len(self.queue_devices_to_connect)}/{self.dc.start_len}')
             await self.connect_device(random_device, loop)
 
 if __name__ == '__main__':

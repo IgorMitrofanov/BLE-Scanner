@@ -52,7 +52,7 @@ class BleakClientAssistant:
                    await asyncio.sleep(0.1)
                    pass
         except Exception as e:
-            #print(e, type(e))
+            print(e, type(e))
             pass
         finally:
             if self.hk and self.lk and self.ul is not None:

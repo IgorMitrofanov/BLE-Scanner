@@ -17,7 +17,7 @@ if __name__ == '__main__':
     start_serial = int(input('Type start serial (only six numers): '))
     end_serial = int(input('Type start serial (only six numers): '))
     timeout = int(input('Type time in seconds for timeout scanning: '))
-    my_scanner = MyScanner(timeout=timeout, start_serial=start_serial, end_serial=end_serial, device_type='TH', loop=loop)
+    my_scanner = MyScanner(timeout=timeout, start_serial=start_serial, end_serial=end_serial, device_type='TD', loop=loop)
     loop.run_until_complete(my_scanner.run())
     print(Fore.GREEN + '\t\tData preview:'+ Style.RESET_ALL)
     print(my_scanner.get_dataframe().head(10))

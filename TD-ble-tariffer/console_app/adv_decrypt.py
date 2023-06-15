@@ -13,9 +13,9 @@ def adv_decrypt(data, device_type):
         print(f"Temperature: {TD_temp_raw}°C")
 
         oil_level_raw = int.from_bytes(data[1:3], byteorder='little', signed=False)
-        print(f"Oil level: {oil_level_raw}")
+        print(f"Fuel level: {oil_level_raw}")
 
-        cnt_raw = int.from_bytes(data[7:8], byteorder='big', signed=False)
+        cnt_raw = int.from_bytes(data[6:10], byteorder='little', signed=False)
         print(f"Period: {cnt_raw}")
         
         return oil_level_raw, battery_voltage, TD_temp_raw, version_raw, cnt_raw

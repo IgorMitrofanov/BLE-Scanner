@@ -19,40 +19,59 @@ import asyncio
 import re
 
 class BleakClientAssistant:
-    def __init__(self, device):
+    def __init__(self, device, period, temp, loop):
         self.device = device
-       # self.timeout = timeout
+        self.period = period
+        self.temp = temp
         self.hk = None
         self.lk = None
-        self.ss_count = 0
+        self.ul = None
+        self.loop = loop
+        self.connected = False
+
+        if temp >= 0:
+            self.temp_corr = 6
+        else:
+            self.temp_corr = 11
 
     async def run(self):
         try:
+            empty = int(self.period - self.temp_corr * self.temp + 50)
+            full = int(2.03*(self.period - 9400) + 9400 - self.temp*(self.temp_corr-self.period / 2400))
+            data = b"SD, LK:1:%s, HK:1:%s" % (str(empty).encode(), str(full).encode())
             print(Fore.GREEN + f'Trying to connect {self.device}...' )
-            async with BleakClient(self.device) as client:
-                if client is not None:
+            async with BleakClient(self.device, loop=self.loop, detection_callback=self.notification_callback, timeout=20) as client:
+                if client is not None and not self.connected:
                     await client.start_notify(14, self.notification_callback)
+                    await client.write_gatt_char(12, data)
+                    await asyncio.sleep(0.1)
                     await client.write_gatt_char(12, b"GA\r") 
-                    await asyncio.sleep(1)
-                    await client.disconnect()
-                    await asyncio.sleep(1)
+                    await asyncio.sleep(0.1)
+                    self.connected = True
                 else:
-                    await client.disconnect()
-                    await asyncio.sleep(1)
+                   # await client.disconnect()
+                   await asyncio.sleep(0.1)
+                   pass
         except Exception as e:
-            pass
+            print(e, type(e))
         finally:
-            if self.hk and self.lk is not None:
+            if self.hk and self.lk is not None: # and self.ul is not None:
                 print(Fore.GREEN + f'\t\tDevice {self.device}: successfull connection!')
-                self.ss_count += 1
-                return self.hk, self.lk, self.ss_count
+                return self.hk, self.lk, self.ul
             else:
                 print(Fore.RED + f'\t\tDevice {self.device}: failed connection!')
                 return 0, 0, 0
 
     def notification_callback(self, sender, data):
-        print(data)
-        match = re.search(b"HK:1:(\d+),LK:1:(\d+)", data)
+        match = re.search(b"UL:1:(\d+),HK:1:(\d+),LK:1:(\d+)", data) # UL:1:(\d+),
         if match:
+            self.ul = int(match.group(1))
             self.hk = int(match.group(1))
             self.lk = int(match.group(2))
+
+if __name__ == '__main__':
+    loop = asyncio.new_event_loop()
+    asyncio.set_event_loop(loop)
+    device = 'D7:C5:1F:02:CB:BD'
+    client_assistant = BleakClientAssistant(device, 24496, 25, loop)
+    loop.run_until_complete(client_assistant.run())

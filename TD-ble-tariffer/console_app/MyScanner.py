@@ -28,7 +28,7 @@ class MyScanner:
         self.scanning = asyncio.Event()
         self.timeout = timeout
         self.dc = DataCollector(start_serial, end_serial, device_type)
-        self.queue_devices_to_connect = [] # Queue()
+        self.queue_devices_to_connect = [] 
         self.retry_devices_list = []
         self.loop = loop
         self.device_type = device_type
@@ -53,7 +53,7 @@ class MyScanner:
                 self.dc.update_char(device.name, 'Battery Voltage', battery_voltage)
                 self.dc.update_char(device.name, 'version', version_raw)
                 self.dc.update_char(device.name, 'Temperature', TD_temp_raw)
-                self.dc.update_char(device.name, 'Oil Level', oil_level_raw)
+                self.dc.update_char(device.name, 'Fuel Level', oil_level_raw)
                 self.dc.update_char(device.name, 'Period', cnt_raw)
 
         except Exception as e:
@@ -73,7 +73,7 @@ class MyScanner:
                         break
                     else:
                         print(Style.RESET_ALL + datetime.datetime.now().strftime('%Y/%m/%d %H:%M') + Fore.RED + f"\t\tTimeout. Can't find all devices ({len(self.dc.device_names)*100/self.dc.start_len:.2f}%)")
-                        print(Style.RESET_ALL + datetime.datetime.now().strftime('%Y/%m/%d %H:%M') + Fore.RED + f'Devices not found: {self.dc.device_names}' + Style.RESET_ALL)
+                        print(Fore.RED + f'Devices not found: {self.dc.device_names}' + Style.RESET_ALL)
                         answer = input(f"Do you want to scan again? (Y for yes/ANY for no): ").lower()
                         if answer == 'y':
                             self.scanning.set()
@@ -94,13 +94,13 @@ class MyScanner:
                                 end_time = self.loop.time() + self.timeout
                                 print(Style.RESET_ALL + datetime.datetime.now().strftime('%Y/%m/%d %H:%M') + Fore.GREEN + f'\t\tStarted scanning with {self.timeout} seconds timeout...')
                         else:
-                            print(Style.RESET_ALL + datetime.datetime.now().strftime('%Y/%m/%d %H:%M') + Fore.RED + f"Scan terminated. Devices no found: {self.dc.device_names}")
+                            print(Style.RESET_ALL + datetime.datetime.now().strftime('%Y/%m/%d %H:%M') + Fore.RED + f"\t\tScan terminated. Devices no found: {self.dc.device_names}")
                 else:
                     await asyncio.sleep(0.1)
             await asyncio.sleep(0.1)
             await self._scanner.stop()
             await asyncio.sleep(0.1)
-            await self.queue_to_connection(self.loop)
+            await self.queue_to_connection()
         except Exception as e:
             print(Fore.RED + f"Error in run (scanner): {e}")
 
@@ -112,21 +112,27 @@ class MyScanner:
         self.dc.get_dataframe().to_excel(xls_path, sheet_name=date_and_time_write)
 
     async def connect_device(self, device, loop):
-        print(asyncio.all_tasks())
-        client_assistant = BleakClientAssistant(device)
-        hk, lk, ss_count = await client_assistant.run()
-        if hk == 0 and lk == 0 and ss_count == 0:
+        temp = int(self.dc.df.loc[self.dc.df['Name'] == device.name, 'Temperature'].values[0])
+        period = int(self.dc.df.loc[self.dc.df['Name'] == device.name, 'Period'].values[0])
+        client_assistant = BleakClientAssistant(device, period, temp, loop)
+        hk, lk, ul = await client_assistant.run()
+        if hk == 0 and lk == 0 and ul == 0:
             self.queue_devices_to_connect.append(device)
+            client_assistant = None
+            return
         else:
-            self.dc.update_char(device.name, 'HK', hk)
-            self.dc.update_char(device.name, 'LK', lk)
+            self.dc.update_char(device.name, 'H', int(hk))
+            self.dc.update_char(device.name, 'L', int(lk))
+            self.dc.update_char(device.name, 'New Fuel Level', int(ul))
+            client_assistant = None
+            return
 
-    async def queue_to_connection(self, loop):
+    async def queue_to_connection(self):
         while not len(self.queue_devices_to_connect) == 0:
             random_device = random.choice(self.queue_devices_to_connect)
             self.queue_devices_to_connect.remove(random_device)
             print(Style.RESET_ALL + datetime.datetime.now().strftime('%Y/%m/%d %H:%M') + Fore.GREEN + f'\t\tConnection count: {self.dc.start_len-len(self.queue_devices_to_connect)}/{self.dc.start_len}')
-            await self.connect_device(random_device, loop)
+            await self.connect_device(random_device, self.loop)
 
 if __name__ == '__main__':
     loop = asyncio.new_event_loop()

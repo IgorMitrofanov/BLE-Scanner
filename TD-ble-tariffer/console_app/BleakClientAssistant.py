@@ -44,18 +44,18 @@ class BleakClientAssistant:
                 if client is not None and not self.connected:
                     await client.start_notify(14, self.notification_callback)
                     await client.write_gatt_char(12, data)
-                    await asyncio.sleep(0.1)
+                    await asyncio.sleep(0.5)
                     await client.write_gatt_char(12, b"GA\r") 
-                    await asyncio.sleep(0.1)
+                    await asyncio.sleep(0.5)
                     self.connected = True
                 else:
-                   # await client.disconnect()
                    await asyncio.sleep(0.1)
                    pass
         except Exception as e:
-            print(e, type(e))
+            #print(e, type(e))
+            pass
         finally:
-            if self.hk and self.lk is not None: # and self.ul is not None:
+            if self.hk and self.lk and self.ul is not None:
                 print(Fore.GREEN + f'\t\tDevice {self.device}: successfull connection!')
                 return self.hk, self.lk, self.ul
             else:

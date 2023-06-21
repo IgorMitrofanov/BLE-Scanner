@@ -27,8 +27,9 @@ class DataCollector:
                                     'version': [None] * len(self.device_names),
                                     'Battery Voltage': [None] * len(self.device_names),
                                     'Temperature': [None] * len(self.device_names),
-                                    'Oil Level' : [None] * len(self.device_names),
-                                    'Period': [None] * len(self.device_names)})
+                                    'Fuel Level' : [None] * len(self.device_names),
+                                    'Period': [None] * len(self.device_names),
+                                    'Why rejected': [None] * len(self.device_names)})
         elif device_type == 'TH':
         
             self.df = pd.DataFrame({'Name': self.device_names, 

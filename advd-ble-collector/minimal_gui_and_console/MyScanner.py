@@ -48,7 +48,7 @@ class MyScanner:
                     self.dc.update_char(device.name, 'Battery Voltage', battery_voltage)
                     self.dc.update_char(device.name, 'version', version_raw)
                     self.dc.update_char(device.name, 'Temperature', TD_temp_raw)
-                    self.dc.update_char(device.name, 'Oil Level', oil_level_raw)
+                    self.dc.update_char(device.name, 'Fuel Level', oil_level_raw)
                     self.dc.update_char(device.name, 'Period', cnt_raw)
 
 
@@ -113,3 +113,24 @@ class MyScanner:
     def to_excel(self, xls_path):
         date_and_time_write = datetime.datetime.now().strftime('%Y_%m_%d %H-%M')
         self.dc.get_dataframe().to_excel(xls_path, sheet_name=date_and_time_write)
+        import openpyxl
+        from openpyxl.styles import PatternFill, Font
+
+        wb = openpyxl.load_workbook(xls_path)
+        ws = wb.active
+
+        for row in ws.iter_rows(min_row=2):
+            fuel_level = row[7].value # Порядковый номер столбца Fuel Level = 3
+            period = row[8].value # Порядковый номер столбца Period = 6
+            if fuel_level in (6500, 7000):
+                row[9].value = "FUEL LEVEL = 6500 OR 7000"
+                for cell in row:
+                    cell.fill = PatternFill(start_color='FFFF0000', end_color='FFFF0000', fill_type='solid')
+                    cell.font = Font(color='FFFFFF') # Белый цвет шрифта
+            elif period < 20000:
+                row[9].value = "Period < 20000"
+                for cell in row:
+                    cell.fill = PatternFill(start_color='FFFF0000', end_color='FFFF0000', fill_type='solid')
+                    cell.font = Font(color='FFFFFF') # Белый цвет шрифта
+
+        wb.save(xls_path)

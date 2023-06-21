@@ -67,7 +67,7 @@ class MyScanner:
             
     async def run(self):
         try:
-            print(Fore.GREEN + f'\t\tStarted scanning in {self.device_type}-mode with {self.timeout} seconds timeout...')
+            print(Fore.GREEN  + datetime.datetime.now().strftime('%Y/%m/%d %H:%M') +  f'\t\tStarted scanning in {self.device_type}-mode with {self.timeout} seconds timeout...')
             await self._scanner.start()
             self.scanning.set()
             end_time = self.loop.time() + self.timeout
@@ -75,10 +75,10 @@ class MyScanner:
                 if self.loop.time() > end_time or len(self.dc.device_names) == 0:
                     self.scanning.clear()
                     if len(self.dc.device_names) == 0:
-                        print(Fore.GREEN + '\t\tAll devices have been found.')
+                        print(Fore.GREEN  + datetime.datetime.now().strftime('%Y/%m/%d %H:%M') +  '\t\tAll devices have been found.')
                         return
                     else:
-                        print(Fore.RED + f"\t\tTimeout. Can't find all devices ({len(self.dc.device_names)*100/self.dc.start_len:.2f}%)")
+                        print(Fore.RED  + datetime.datetime.now().strftime('%Y/%m/%d %H:%M') +  f"\t\tTimeout. Can't find all devices ({len(self.dc.device_names)*100/self.dc.start_len:.2f}%)")
                         print(Fore.RED + f'Devices not found: {self.dc.device_names}' + Style.RESET_ALL)
                         answer = input(f"Do you want to scan again? (Y for yes/ANY for no): ").lower()
                         if answer == 'y':
@@ -89,18 +89,18 @@ class MyScanner:
                                     new_timeout = int(input('Timeout secdonds (only int): '))
                                     self.timeout = new_timeout
                                     end_time = self.loop.time() + self.timeout
-                                    print(Fore.YELLOW + f'\t\tStarted scanning with {self.timeout} seconds timeout...')
+                                    print(Fore.YELLOW  + datetime.datetime.now().strftime('%Y/%m/%d %H:%M') +  f'\t\tStarted scanning with {self.timeout} seconds timeout...')
                                 except:
                                     print(Fore.RED + 'timeout can be int only!')
                                     new_timeout = int(input('Timeout secdonds (only int):'))
                                     self.timeout = new_timeout
                                     end_time = self.loop.time() + self.timeout
-                                    print(Fore.YELLOW + f'\t\tStarted scanning with {self.timeout} seconds timeout...')
+                                    print(Fore.YELLOW  + datetime.datetime.now().strftime('%Y/%m/%d %H:%M') +  f'\t\tStarted scanning with {self.timeout} seconds timeout...')
                             else:
                                 end_time = self.loop.time() + self.timeout
-                                print(Fore.YELLOW + f'\t\tStarted scanning with {self.timeout} seconds timeout...')
+                                print(Fore.YELLOW  + datetime.datetime.now().strftime('%Y/%m/%d %H:%M') +  f'\t\tStarted scanning with {self.timeout} seconds timeout...')
                         else:
-                            print(Fore.RED + f"Scan terminated. Devices no found: {self.dc.device_names}")
+                            print(Fore.RED  + datetime.datetime.now().strftime('%Y/%m/%d %H:%M') +  f"Scan terminated. Devices no found: {self.dc.device_names}")
                 else:
                     await asyncio.sleep(0.1)
             await self._scanner.stop()

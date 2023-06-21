@@ -36,7 +36,7 @@ print(Fore.GREEN + '\t\tData preview:'+ Style.RESET_ALL)
 print(my_scanner.get_dataframe().head())
 print()
 if report_path != 'WITHOUT_WRITE':
-    filename = 'collected_' device_type + '_' + str(start_serial)+ '-' + str(end_serial) + '.xlsx'
+    filename = 'collected_' + device_type + '_' + str(start_serial)+ '-' + str(end_serial) + '.xlsx'
     my_scanner.to_excel(report_path + '/' + filename)
     print(Fore.GREEN + f'File writed to {report_path} with name {filename}')
     print(Fore.YELLOW + '\t\tProgram terminated.')

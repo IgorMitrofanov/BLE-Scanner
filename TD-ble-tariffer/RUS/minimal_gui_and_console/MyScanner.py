@@ -6,6 +6,8 @@ except:
     os.system('pip install bleak==0.20.2')
     from bleak import BleakScanner
 
+import numpy as np
+
 import asyncio
 import random
 import datetime
@@ -14,6 +16,9 @@ import datetime
 from DataCollector import DataCollector
 from adv_decrypt import adv_decrypt
 from BleakClientAssistant import BleakClientAssistant
+
+import openpyxl
+from openpyxl.styles import PatternFill, Font
 
 try:
     from colorama import init, Fore, Style
@@ -112,6 +117,45 @@ class MyScanner:
     def to_excel(self, xls_path):
         date_and_time_write = datetime.datetime.now().strftime('%Y_%m_%d %H_%M')
         self.dc.get_dataframe().to_excel(xls_path, sheet_name=date_and_time_write)
+
+        wb = openpyxl.load_workbook(xls_path)
+        ws = wb.active
+
+        # определяем цвет заливки
+        red_fill = PatternFill(start_color='FFC7CE', end_color='FFC7CE', fill_type='solid')
+        white_font = Font(color='FFFFFF') # Белый цвет шрифта
+
+        # вычисляем среднее значение 6 столбца
+        avg_temp = np.mean([row[6].value for row in ws.iter_rows(min_row=2)])
+
+        # проходимся по всем строкам, начиная со второй
+        for row in ws.iter_rows(min_row=2):
+            temp = row[6].value 
+            hk = row[9].value 
+            lk = row[10].value 
+            fl = row[11].value
+        if fl > 15:
+            row[12].value = "Уровень топлива более 15 единиц"
+            for cell in row:
+                cell.fill = red_fill
+                cell.font = white_font
+        elif lk < 20000:
+            row[12].value = "L < 20000"
+            for cell in row:
+                cell.fill = red_fill
+                cell.font = white_font
+        elif hk > 43000:
+            row[12].value = "L < 20000"
+            for cell in row:
+                cell.fill = red_fill
+                cell.font = white_font
+        elif abs(temp - avg_temp) > 5:
+            row[12].value = "Температура отличается от средней более чем на 5 единиц"
+            for cell in row:
+                cell.fill = red_fill
+                cell.font = white_font
+
+        wb.save(xls_path)
 
     async def connect_device(self, device, loop):
         temp = int(self.dc.df.loc[self.dc.df['Имя'] == device.name, 'Температура'].values[0])

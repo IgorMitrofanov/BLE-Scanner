@@ -22,7 +22,7 @@ class ScannerGUI:
         self.timeout_label.pack()
         self.timeout_entry = tk.Entry(master)
         self.timeout_entry.pack()
-        self.timeout_entry.insert(0, "60")
+        self.timeout_entry.insert(0, "150")
 
         self.start_serial_label = tk.Label(master, text="Начальный серийный номер:")
         self.start_serial_label.pack()

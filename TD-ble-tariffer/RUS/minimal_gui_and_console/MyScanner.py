@@ -160,6 +160,7 @@ class MyScanner:
     async def connect_device(self, device, loop):
         temp = int(self.dc.df.loc[self.dc.df['Имя'] == device.name, 'Температура'].values[0])
         period = int(self.dc.df.loc[self.dc.df['Имя'] == device.name, 'Период'].values[0])
+        fl = int(self.dc.df.loc[self.dc.df['Имя'] == device.name, 'Уровень топлива'].values[0])
         client_assistant = BleakClientAssistant(device, period, temp, loop)
         hk, lk, ul = await client_assistant.run()
         if hk == 0 and lk == 0 and ul == 0:

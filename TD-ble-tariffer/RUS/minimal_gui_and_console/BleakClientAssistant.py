@@ -19,10 +19,11 @@ import asyncio
 import re
 
 class BleakClientAssistant:
-    def __init__(self, device, period, temp, loop):
+    def __init__(self, device, period, temp, fl, loop):
         self.device = device
         self.period = period
         self.temp = temp
+        self.fl = fl
         self.hk = None
         self.lk = None
         self.ul = None
@@ -36,6 +37,8 @@ class BleakClientAssistant:
 
     async def run(self):
         try:
+            if self.fl == 6500 or self.fl == 7000: # если бракованный, то не тарировать
+                return 1, 1, 7000
             empty = int(self.period - self.temp_corr * self.temp + 50)
             full = int(2.03*(self.period - 9400) + 9400 - self.temp*(self.temp_corr-self.period / 2400))
             data = b"SD, LK:1:%s, HK:1:%s" % (str(empty).encode(), str(full).encode())

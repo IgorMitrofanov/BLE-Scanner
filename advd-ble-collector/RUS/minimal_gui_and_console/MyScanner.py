@@ -45,7 +45,7 @@ class MyScanner:
 
                     oil_level_raw, battery_voltage, TD_temp_raw, version_raw, cnt_raw = adv_decrypt(advertisement_data.manufacturer_data[3862], device_type=self.device_type)
 
-                    self.dc.update_char(device.name, 'Напряжение батаери', battery_voltage)
+                    self.dc.update_char(device.name, 'Напряжение батареи', battery_voltage)
                     self.dc.update_char(device.name, 'Версия прошивки', version_raw)
                     self.dc.update_char(device.name, 'Температура', TD_temp_raw)
                     self.dc.update_char(device.name, 'Уровень топлива', oil_level_raw)

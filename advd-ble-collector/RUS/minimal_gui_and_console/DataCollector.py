@@ -29,9 +29,6 @@ class DataCollector:
                                     'Температура': [None] * len(self.device_names),
                                     'Уровень топлива' : [None] * len(self.device_names),
                                     'Период': [None] * len(self.device_names),
-                                    'H': [None] * len(self.device_names),
-                                    'L': [None] * len(self.device_names),
-                                    'Уровень топлива после тарировки': [None] * len(self.device_names),
                                     'Причина отбраковки': [None] * len(self.device_names)})
         elif device_type == 'TH':
         

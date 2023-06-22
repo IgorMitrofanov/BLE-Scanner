@@ -36,9 +36,9 @@ class BleakClientAssistant:
             self.temp_corr = 11
 
     async def run(self):
-        try:
-            if self.fl == 6500 or self.fl == 7000: # если бракованный, то не тарировать
+        if self.fl == 6500 or self.fl == 7000: # если бракованный, то не тарировать
                 return 1, 1, 7000
+        try:
             empty = int(self.period - self.temp_corr * self.temp + 50)
             full = int(2.03*(self.period - 9400) + 9400 - self.temp*(self.temp_corr-self.period / 2400))
             data = b"SD, LK:1:%s, HK:1:%s" % (str(empty).encode(), str(full).encode())
@@ -55,7 +55,7 @@ class BleakClientAssistant:
                    await asyncio.sleep(0.1)
                    pass
         except Exception as e:
-            #print(e, type(e))
+            print(e, type(e))
             pass
         finally:
             if self.hk and self.lk and self.ul is not None:

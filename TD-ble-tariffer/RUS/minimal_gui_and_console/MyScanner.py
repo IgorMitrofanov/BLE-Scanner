@@ -108,7 +108,7 @@ class MyScanner:
             await asyncio.sleep(0.1)
             await self.queue_to_connection()
         except Exception as e:
-            #print(Fore.RED + f"Error in run (scanner): {e}")
+            print(Fore.RED + f"Error in run (scanner): {e}")
             pass
 
     def get_dataframe(self):
@@ -122,7 +122,7 @@ class MyScanner:
         ws = wb.active
 
         # определяем цвет заливки
-        red_fill = PatternFill(start_color='FFC7CE', end_color='FFC7CE', fill_type='solid')
+        red_fill = PatternFill(start_color='FFFF0000', end_color='FFFF0000', fill_type='solid')
         white_font = Font(color='FFFFFF') # Белый цвет шрифта
 
         # вычисляем среднее значение 6 столбца

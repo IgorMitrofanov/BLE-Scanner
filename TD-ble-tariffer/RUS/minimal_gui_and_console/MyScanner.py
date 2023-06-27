@@ -134,28 +134,28 @@ class MyScanner:
             hk = row[9].value 
             lk = row[10].value 
             fl = row[11].value
-        if fl > 15:
-            row[12].value = "Уровень топлива более 15 единиц"
-            for cell in row:
-                cell.fill = red_fill
-                cell.font = white_font
-        elif lk < 20000:
-            row[12].value = "L < 20000"
-            for cell in row:
-                cell.fill = red_fill
-                cell.font = white_font
-        elif hk > 43000:
-            row[12].value = "L < 20000"
-            for cell in row:
-                cell.fill = red_fill
-                cell.font = white_font
-        elif abs(temp - avg_temp) > 5:
-            row[12].value = "Температура отличается от средней более чем на 5 единиц"
-            for cell in row:
-                cell.fill = red_fill
-                cell.font = white_font
+            if fl > 15:
+                row[12].value = "Уровень топлива более 15 единиц"
+                for cell in row:
+                    cell.fill = red_fill
+                    cell.font = white_font
+            elif lk < 20000:
+                row[12].value = "L < 20000"
+                for cell in row:
+                    cell.fill = red_fill
+                    cell.font = white_font
+            elif hk > 43000:
+                row[12].value = "L < 20000"
+                for cell in row:
+                    cell.fill = red_fill
+                    cell.font = white_font
+            elif abs(temp - avg_temp) > 5:
+                row[12].value = "Температура отличается от средней более чем на 5 единиц"
+                for cell in row:
+                    cell.fill = red_fill
+                    cell.font = white_font
 
-        wb.save(xls_path)
+            wb.save(xls_path)
 
     async def connect_device(self, device, loop):
         temp = int(self.dc.df.loc[self.dc.df['Имя'] == device.name, 'Температура'].values[0])

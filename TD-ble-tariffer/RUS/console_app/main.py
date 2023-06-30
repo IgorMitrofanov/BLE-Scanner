@@ -10,11 +10,7 @@ except:
 
 init()
 
-import cProfile
-
 def main(i):
-    profiler = cProfile.Profile()
-    profiler.enable()
     loop = asyncio.new_event_loop()
     asyncio.set_event_loop(loop)
     #start_serial = int(input('Type start serial (only six numers): '))
@@ -27,9 +23,6 @@ def main(i):
     report_path = r'C:/Users/User/Desktop/TEST'
     filename = str(i) + '.xlsx'
     my_scanner.to_excel(report_path + '/' + filename)
-    profiler.disable()
-    with open('profile_report'+ str(i) +'.txt', 'w') as file:
-        profiler.print_stats()
 
 
 if __name__ == '__main__':

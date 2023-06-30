@@ -43,16 +43,16 @@ class BleakClientAssistant:
             full = int(2.03*(self.period - 9400) + 9400 - self.temp*(self.temp_corr-self.period / 2400))
             data = b"SD, LK:1:%s, HK:1:%s" % (str(empty).encode(), str(full).encode())
             print(Fore.GREEN + f'Пытаюсь установить соединение с {self.device}...' )
-            async with BleakClient(self.device, loop=self.loop, detection_callback=self.notification_callback, timeout=20) as client:
+            async with BleakClient(self.device, loop=self.loop, services=['6e400003b5a3f393e0a9', '6e400002b5a3f393e0a9'], timeout=20) as client:
                 if client is not None and not self.connected:
                     await client.start_notify(14, self.notification_callback)
                     await client.write_gatt_char(12, data)
-                    await asyncio.sleep(0.5)
+                    await asyncio.sleep(2)
                     await client.write_gatt_char(12, b"GA\r") 
-                    await asyncio.sleep(0.5)
+                    await asyncio.sleep(1)
                     self.connected = True
                 else:
-                   await asyncio.sleep(0.1)
+                   await asyncio.sleep(1)
                    pass
         except Exception as e:
             print(e, type(e))
@@ -67,6 +67,7 @@ class BleakClientAssistant:
 
     def notification_callback(self, sender, data):
         match = re.search(b"UL:1:(\d+),HK:1:(\d+),LK:1:(\d+)", data) # UL:1:(\d+),
+        print(sender)
         if match:
             self.ul = int(match.group(1))
             self.hk = int(match.group(2))

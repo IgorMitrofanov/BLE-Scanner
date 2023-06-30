@@ -102,10 +102,10 @@ class MyScanner:
                         else:
                             print(Style.RESET_ALL + datetime.datetime.now().strftime('%Y/%m/%d %H:%M') + Fore.RED + f"\t\tВремя сканирования вышло. Не найденные устройства: {self.dc.device_names}")
                 else:
-                    await asyncio.sleep(0.1)
-            await asyncio.sleep(0.1)
+                    await asyncio.sleep(0)
+            await asyncio.sleep(0)
             await self._scanner.stop()
-            await asyncio.sleep(0.1)
+            await asyncio.sleep(0)
             await self.queue_to_connection()
         except Exception as e:
             print(Fore.RED + f"Error in run (scanner): {e}")

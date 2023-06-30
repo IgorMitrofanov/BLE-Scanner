@@ -155,7 +155,7 @@ class MyScanner:
                     cell.fill = red_fill
                     cell.font = white_font
 
-            wb.save(xls_path)
+        wb.save(xls_path)
 
     async def connect_device(self, device, loop):
         temp = int(self.dc.df.loc[self.dc.df['Имя'] == device.name, 'Температура'].values[0])

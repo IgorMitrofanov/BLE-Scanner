@@ -28,13 +28,13 @@ class ScannerGUI:
         self.start_serial_label.pack()
         self.start_serial_entry = tk.Entry(master)
         self.start_serial_entry.pack()
-        self.start_serial_entry.insert(0, "100001")
+        self.start_serial_entry.insert(0, "400043")
 
         self.end_serial_label = tk.Label(master, text="Конечный серийный номер:")
         self.end_serial_label.pack()
         self.end_serial_entry = tk.Entry(master)
         self.end_serial_entry.pack()
-        self.end_serial_entry.insert(0, "100001")
+        self.end_serial_entry.insert(0, "400052")
 
        # self.device_type_label = tk.Label(master, text="Device type:")
        # self.device_type_label.pack()

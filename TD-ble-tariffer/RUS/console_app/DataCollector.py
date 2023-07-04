@@ -44,9 +44,11 @@ class DataCollector:
                                     'Влажность': [None] * len(self.device_names),
                                     'Освещенность' : [None] * len(self.device_names)})
 
+
     def update_char(self, device_name, char_name, value):
         index = self.df.index[self.df['Имя'] == device_name][0]
         self.df.loc[index, char_name] = value
             
+
     def get_dataframe(self):
         return self.df

@@ -1,30 +1,32 @@
 import os
-
 import asyncio
 from MyScanner import MyScanner
+
 
 try:
     from colorama import init, Fore, Style
 except:
     os.system('pip install colorama==0.4.6')
 
+
 init()
 
-def main(i):
-    loop = asyncio.new_event_loop()
-    asyncio.set_event_loop(loop)
+loop = asyncio.new_event_loop()
+loop.set_debug(True)
+asyncio.set_event_loop(loop)
+
+async def run_scanner():
     #start_serial = int(input('Type start serial (only six numers): '))
     #end_serial = int(input('Type start serial (only six numers): '))
     #timeout = int(input('Type time in seconds for timeout scanning: '))
     my_scanner = MyScanner(timeout=120, start_serial=400043, end_serial=400052, device_type='TD', loop=loop)
-    loop.run_until_complete(my_scanner.run())
-    print(Fore.GREEN + '\t\tПредпросмотр данных:'+ Style.RESET_ALL)
-    print(my_scanner.get_dataframe().head(10))
+    await my_scanner.run()
+    print(my_scanner.get_dataframe())
     report_path = r'C:/Users/User/Desktop/TEST'
-    filename = str(i) + '.xlsx'
+    filename = '1111.xlsx'
     my_scanner.to_excel(report_path + '/' + filename)
 
+async def main():
+    await run_scanner()
 
-if __name__ == '__main__':
-    for i in range(100):
-        main(i)
+loop.run_until_complete(main())

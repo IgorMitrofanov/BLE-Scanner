@@ -1,31 +1,33 @@
 import os
 
+
 try:
     from bleak import BleakScanner
 except:
     os.system('pip install bleak==0.20.2')
     from bleak import BleakScanner
 
-import numpy as np
 
+import numpy as np
 import asyncio
 import random
 import datetime
 # from queue import Queue
-
 from DataCollector import DataCollector
 from adv_decrypt import adv_decrypt
 from BleakClientAssistant import BleakClientAssistant
-
 import openpyxl
 from openpyxl.styles import PatternFill, Font
+
 
 try:
     from colorama import init, Fore, Style
 except:
     os.system('pip install colorama==0.4.6')
 
+
 init()
+
 
 class MyScanner:
     def __init__(self, timeout, start_serial, end_serial, device_type, loop):
@@ -37,6 +39,7 @@ class MyScanner:
         self.retry_devices_list = []
         self.loop = loop
         self.device_type = device_type
+
 
     async def detection_callback(self, device, advertisement_data):
         try:
@@ -65,9 +68,10 @@ class MyScanner:
             #print(Fore.RED + f"Error in callback (scanner): {e}")
             pass
 
+
     async def run(self):
         try:
-            print(Style.RESET_ALL + datetime.datetime.now().strftime('%Y/%m/%d %H:%M') + Fore.GREEN + f'\t\tЗапущенно сканирование в течение {self.timeout} секунд...')
+            print(Style.RESET_ALL + datetime.datetime.now().strftime('%Y/%m/%d %H:%M:%S') + Fore.GREEN + f'\t\tЗапущенно сканирование в течение {self.timeout} секунд...')
             await self._scanner.start()
             self.scanning.set()
             end_time = self.loop.time() + self.timeout
@@ -75,10 +79,10 @@ class MyScanner:
                 if self.loop.time() > end_time or len(self.dc.device_names) == 0:
                     self.scanning.clear()
                     if len(self.dc.device_names) == 0:
-                        print(Style.RESET_ALL + datetime.datetime.now().strftime('%Y/%m/%d %H:%M') + Fore.GREEN + '\t\tВсе устройства найдены.')
+                        print(Style.RESET_ALL + datetime.datetime.now().strftime('%Y/%m/%d %H:%M:%S') + Fore.GREEN + '\t\tВсе устройства найдены.')
                         break
                     else:
-                        print(Style.RESET_ALL + datetime.datetime.now().strftime('%Y/%m/%d %H:%M') + Fore.RED + f"\t\t Время сканирования вышло. Не все устройства найдены ({len(self.dc.device_names)*100/self.dc.start_len:.2f}%).")
+                        print(Style.RESET_ALL + datetime.datetime.now().strftime('%Y/%m/%d %H:%M:%S') + Fore.RED + f"\t\t Время сканирования вышло. Не все устройства найдены ({len(self.dc.device_names)*100/self.dc.start_len:.2f}%).")
                         print(Fore.RED + f'Не найденные устройства: {self.dc.device_names}' + Style.RESET_ALL)
                         answer = input(f"Хотите искать снова? (д/любая клавиша для нет): ").lower()
                         if answer == 'д':
@@ -89,18 +93,18 @@ class MyScanner:
                                     new_timeout = int(input('Время сканирования (только целые числа): '))
                                     self.timeout = new_timeout
                                     end_time = self.loop.time() + self.timeout
-                                    print(Style.RESET_ALL + datetime.datetime.now().strftime('%Y/%m/%d %H:%M') + Fore.GREEN + f'\t\tЗапущенно сканирование в течение {self.timeout} секунд...')
+                                    print(Style.RESET_ALL + datetime.datetime.now().strftime('%Y/%m/%d %H:%M:%S') + Fore.GREEN + f'\t\tЗапущенно сканирование в течение {self.timeout} секунд...')
                                 except:
                                     print(Fore.RED + 'Время сканирования может быть только целочисленное!')
                                     new_timeout = int(input('Время сканирования (только целые числа): '))
                                     self.timeout = new_timeout
                                     end_time = self.loop.time() + self.timeout
-                                    print(Style.RESET_ALL + datetime.datetime.now().strftime('%Y/%m/%d %H:%M') + Fore.GREEN + f'\t\tЗапущенно сканирование в течение {self.timeout} секунд...')
+                                    print(Style.RESET_ALL + datetime.datetime.now().strftime('%Y/%m/%d %H:%M:%S') + Fore.GREEN + f'\t\tЗапущенно сканирование в течение {self.timeout} секунд...')
                             else:
                                 end_time = self.loop.time() + self.timeout
-                                print(Style.RESET_ALL + datetime.datetime.now().strftime('%Y/%m/%d %H:%M') + Fore.GREEN + f'\t\tЗапущенно сканирование в течение {self.timeout} секунд...')
+                                print(Style.RESET_ALL + datetime.datetime.now().strftime('%Y/%m/%d %H:%M:%S') + Fore.GREEN + f'\t\tЗапущенно сканирование в течение {self.timeout} секунд...')
                         else:
-                            print(Style.RESET_ALL + datetime.datetime.now().strftime('%Y/%m/%d %H:%M') + Fore.RED + f"\t\tВремя сканирования вышло. Не найденные устройства: {self.dc.device_names}")
+                            print(Style.RESET_ALL + datetime.datetime.now().strftime('%Y/%m/%d %H:%M:%S') + Fore.RED + f"\t\tВремя сканирования вышло. Не найденные устройства: {self.dc.device_names}")
                 else:
                     await asyncio.sleep(0)
             await asyncio.sleep(0)
@@ -108,12 +112,14 @@ class MyScanner:
             await asyncio.sleep(0)
             await self.queue_to_connection()
         except Exception as e:
-            print(Fore.RED + f"Error in run (scanner): {e}")
+           # print(Fore.RED + f"Error in run (scanner): {e}")
             pass
+
 
     def get_dataframe(self):
         return self.dc.get_dataframe()
     
+
     def to_excel(self, xls_path):
         date_and_time_write = datetime.datetime.now().strftime('%Y_%m_%d %H_%M')
         self.dc.get_dataframe().to_excel(xls_path, sheet_name=date_and_time_write)
@@ -157,6 +163,7 @@ class MyScanner:
 
         wb.save(xls_path)
 
+
     async def connect_device(self, device, loop):
         temp = int(self.dc.df.loc[self.dc.df['Имя'] == device.name, 'Температура'].values[0])
         period = int(self.dc.df.loc[self.dc.df['Имя'] == device.name, 'Период'].values[0])
@@ -165,21 +172,53 @@ class MyScanner:
         hk, lk, ul = await client_assistant.run()
         if hk == 0 and lk == 0 and ul == 0:
             self.queue_devices_to_connect.append(device)
-            client_assistant = None
             return
         else:
             self.dc.update_char(device.name, 'H', int(hk))
             self.dc.update_char(device.name, 'L', int(lk))
             self.dc.update_char(device.name, 'Уровень топлива после тарировки', int(ul))
-            client_assistant = None
+            self.get_dataframe().to_excel('temp.xlsx')
             return
+
 
     async def queue_to_connection(self):
         while not len(self.queue_devices_to_connect) == 0:
-            random_device = random.choice(self.queue_devices_to_connect)
-            self.queue_devices_to_connect.remove(random_device)
-            print(Style.RESET_ALL + datetime.datetime.now().strftime('%Y/%m/%d %H:%M') + Fore.GREEN + f'\t\tСчетчик успешных тарировок: {self.dc.start_len-len(self.queue_devices_to_connect)-1}/{self.dc.start_len}')
-            await self.connect_device(random_device, self.loop)
+            devices_to_connect = random.sample(self.queue_devices_to_connect, min(5, len(self.queue_devices_to_connect)))
+            self.queue_devices_to_connect = list(set(self.queue_devices_to_connect) - set(devices_to_connect))
+
+            coros = [self.connect_device(device, self.loop) for device in devices_to_connect]
+            tasks = [asyncio.create_task(coro) for coro in coros]  # Создаем задачи с помощью asyncio.create_task()
+
+            try:
+                done, pending = await asyncio.wait(tasks, timeout=60)  # Ожидаем выполнение задачи в течение 1 минуты
+            except asyncio.TimeoutError:
+                print('autoclose')
+                print(len(self.queue_devices_to_connect))
+                for task in pending:
+                    task.cancel()
+                    continue
+
+
+        print(Style.RESET_ALL + datetime.datetime.now().strftime('%Y/%m/%d %H:%M:%S') + Fore.GREEN + f'\t\tСчетчик успешных тарировок: {self.dc.start_len-len(self.queue_devices_to_connect)}/{self.dc.start_len}')
+
+
+    """async def queue_to_connection(self):
+        while not len(self.queue_devices_to_connect) == 0:
+            devices_to_connect = random.sample(self.queue_devices_to_connect, min(5, len(self.queue_devices_to_connect)))
+            self.queue_devices_to_connect = list(set(self.queue_devices_to_connect) - set(devices_to_connect))
+
+            coros = [self.connect_device(device, self.loop) for device in devices_to_connect]
+
+            try:
+                await asyncio.wait_for(asyncio.gather(*coros), timeout=5)  # Ожидание выполнения задачи в течение 1 минуты
+            except asyncio.TimeoutError:
+                print('autoclose')
+                for task in coros:
+                    if not task.done():  # Проверяем, завершилась ли задача
+                        task.cancel()
+
+            print(Style.RESET_ALL + datetime.datetime.now().strftime('%Y/%m/%d %H:%M:%S') + Fore.GREEN + f'\t\tСчетчик успешных тарировок: {self.dc.start_len-len(self.queue_devices_to_connect)}/{self.dc.start_len}')"""
+
 
 if __name__ == '__main__':
     loop = asyncio.new_event_loop()

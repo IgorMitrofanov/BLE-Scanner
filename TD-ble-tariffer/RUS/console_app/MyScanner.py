@@ -7,17 +7,10 @@ except:
     os.system('pip install bleak==0.20.2')
     from bleak import BleakScanner
 
-
-import numpy as np
-import asyncio
-import random
 import datetime
-# from queue import Queue
+import asyncio
 from DataCollector import DataCollector
 from adv_decrypt import adv_decrypt
-from BleakClientAssistant import BleakClientAssistant
-import openpyxl
-from openpyxl.styles import PatternFill, Font
 
 
 try:
@@ -35,7 +28,7 @@ class MyScanner:
         self.scanning = asyncio.Event()
         self.timeout = timeout
         self.dc = DataCollector(start_serial, end_serial, device_type)
-        self.queue_devices_to_connect = [] 
+        self.devices_to_connect = [] 
         self.retry_devices_list = []
         self.loop = loop
         self.device_type = device_type
@@ -46,7 +39,7 @@ class MyScanner:
             if device.name in self.dc.device_names: 
                 
                 
-                self.queue_devices_to_connect.append(device)
+                self.devices_to_connect.append(device)
             
                 self.dc.device_names.remove(device.name)
             
@@ -95,7 +88,7 @@ class MyScanner:
                                     end_time = self.loop.time() + self.timeout
                                     print(Style.RESET_ALL + datetime.datetime.now().strftime('%Y/%m/%d %H:%M:%S') + Fore.GREEN + f'\t\tЗапущенно сканирование в течение {self.timeout} секунд...')
                                 except:
-                                    print(Fore.RED + 'Время сканирования может быть только целочисленное!')
+                                    print(Fore.RED + 'Время сканирования может быть только целочисленное!' + Style.RESET_ALL)
                                     new_timeout = int(input('Время сканирования (только целые числа): '))
                                     self.timeout = new_timeout
                                     end_time = self.loop.time() + self.timeout
@@ -109,123 +102,25 @@ class MyScanner:
                     await asyncio.sleep(0)
             await asyncio.sleep(0)
             await self._scanner.stop()
-            await asyncio.sleep(0)
-            await self.queue_to_connection()
+            return self.devices_to_connect
         except Exception as e:
-           # print(Fore.RED + f"Error in run (scanner): {e}")
+            print(Fore.RED + f"Error in run (scanner): {e}")
             pass
 
+async def run_scanner():
+    #start_serial = int(input('Type start serial (only six numers): '))
+    #end_serial = int(input('Type start serial (only six numers): '))
+    #timeout = int(input('Type time in seconds for timeout scanning: '))
+    my_scanner = MyScanner(timeout=10, start_serial=400043, end_serial=400052, device_type='TD', loop=loop)
+    result = await my_scanner.run()
+    return result
 
-    def get_dataframe(self):
-        return self.dc.get_dataframe()
-    
-
-    def to_excel(self, xls_path):
-        date_and_time_write = datetime.datetime.now().strftime('%Y_%m_%d %H_%M')
-        self.dc.get_dataframe().to_excel(xls_path, sheet_name=date_and_time_write)
-
-        wb = openpyxl.load_workbook(xls_path)
-        ws = wb.active
-
-        # определяем цвет заливки
-        red_fill = PatternFill(start_color='FFFF0000', end_color='FFFF0000', fill_type='solid')
-        white_font = Font(color='FFFFFF') # Белый цвет шрифта
-
-        # вычисляем среднее значение 6 столбца
-        avg_temp = np.mean([row[6].value for row in ws.iter_rows(min_row=2)])
-
-        # проходимся по всем строкам, начиная со второй
-        for row in ws.iter_rows(min_row=2):
-            temp = row[6].value 
-            hk = row[9].value 
-            lk = row[10].value 
-            fl = row[11].value
-            if fl > 15:
-                row[12].value = "Уровень топлива более 15 единиц"
-                for cell in row:
-                    cell.fill = red_fill
-                    cell.font = white_font
-            elif lk < 20000:
-                row[12].value = "L < 20000"
-                for cell in row:
-                    cell.fill = red_fill
-                    cell.font = white_font
-            elif hk > 43000:
-                row[12].value = "L < 20000"
-                for cell in row:
-                    cell.fill = red_fill
-                    cell.font = white_font
-            elif abs(temp - avg_temp) > 5:
-                row[12].value = "Температура отличается от средней более чем на 5 единиц"
-                for cell in row:
-                    cell.fill = red_fill
-                    cell.font = white_font
-
-        wb.save(xls_path)
-
-
-    async def connect_device(self, device, loop):
-        temp = int(self.dc.df.loc[self.dc.df['Имя'] == device.name, 'Температура'].values[0])
-        period = int(self.dc.df.loc[self.dc.df['Имя'] == device.name, 'Период'].values[0])
-        fl = int(self.dc.df.loc[self.dc.df['Имя'] == device.name, 'Уровень топлива'].values[0])
-        client_assistant = BleakClientAssistant(device, period, temp, fl, loop)
-        hk, lk, ul = await client_assistant.run()
-        if hk == 0 and lk == 0 and ul == 0:
-            self.queue_devices_to_connect.append(device)
-            return
-        else:
-            self.dc.update_char(device.name, 'H', int(hk))
-            self.dc.update_char(device.name, 'L', int(lk))
-            self.dc.update_char(device.name, 'Уровень топлива после тарировки', int(ul))
-            self.get_dataframe().to_excel('temp.xlsx')
-            return
-
-
-    async def queue_to_connection(self):
-        while not len(self.queue_devices_to_connect) == 0:
-            devices_to_connect = random.sample(self.queue_devices_to_connect, min(5, len(self.queue_devices_to_connect)))
-            self.queue_devices_to_connect = list(set(self.queue_devices_to_connect) - set(devices_to_connect))
-
-            coros = [self.connect_device(device, self.loop) for device in devices_to_connect]
-            tasks = [asyncio.create_task(coro) for coro in coros]  # Создаем задачи с помощью asyncio.create_task()
-
-            try:
-                done, pending = await asyncio.wait(tasks, timeout=60)  # Ожидаем выполнение задачи в течение 1 минуты
-            except asyncio.TimeoutError:
-                print('autoclose')
-                print(len(self.queue_devices_to_connect))
-                for task in pending:
-                    task.cancel()
-                    continue
-
-
-        print(Style.RESET_ALL + datetime.datetime.now().strftime('%Y/%m/%d %H:%M:%S') + Fore.GREEN + f'\t\tСчетчик успешных тарировок: {self.dc.start_len-len(self.queue_devices_to_connect)}/{self.dc.start_len}')
-
-
-    """async def queue_to_connection(self):
-        while not len(self.queue_devices_to_connect) == 0:
-            devices_to_connect = random.sample(self.queue_devices_to_connect, min(5, len(self.queue_devices_to_connect)))
-            self.queue_devices_to_connect = list(set(self.queue_devices_to_connect) - set(devices_to_connect))
-
-            coros = [self.connect_device(device, self.loop) for device in devices_to_connect]
-
-            try:
-                await asyncio.wait_for(asyncio.gather(*coros), timeout=5)  # Ожидание выполнения задачи в течение 1 минуты
-            except asyncio.TimeoutError:
-                print('autoclose')
-                for task in coros:
-                    if not task.done():  # Проверяем, завершилась ли задача
-                        task.cancel()
-
-            print(Style.RESET_ALL + datetime.datetime.now().strftime('%Y/%m/%d %H:%M:%S') + Fore.GREEN + f'\t\tСчетчик успешных тарировок: {self.dc.start_len-len(self.queue_devices_to_connect)}/{self.dc.start_len}')"""
-
+async def main():
+    result = await run_scanner()
+    print(result)
 
 if __name__ == '__main__':
     loop = asyncio.new_event_loop()
+    loop.set_debug(True)
     asyncio.set_event_loop(loop)
-    start_serial = int(input('Type start serial (only six numers): '))
-    end_serial = int(input('Type start serial (only six numers): '))
-    timeout = int(input('Type time in seconds for timeout scanning: '))
-    my_scanner = MyScanner(timeout=timeout, start_serial=start_serial, end_serial=end_serial, pattern='TD_', loop=loop)
-    loop.run_until_complete(my_scanner.run())
-    print(my_scanner.get_dataframe())
+    loop.run_until_complete(main())

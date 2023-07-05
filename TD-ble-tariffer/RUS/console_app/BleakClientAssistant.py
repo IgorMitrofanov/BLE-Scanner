@@ -20,8 +20,8 @@ import re
 import datetime
 
 
-
 init()
+
 
 class BleakClientAssistant:
     def __init__(self, device, period, temp, fl, loop):
@@ -49,7 +49,7 @@ class BleakClientAssistant:
             full = int(2.03*(self.period - 9400) + 9400 - self.temp*(self.temp_corr-self.period / 2400))
             data = b"SD, LK:1:%s, HK:1:%s" % (str(empty).encode(), str(full).encode())
             print(Fore.GREEN + f'Пытаюсь установить соединение с {self.device}...' )     
-            async with BleakClient(self.device, timeout=30) as client:
+            async with BleakClient(self.device, timeout=60) as client:
                 if client is not None and not self.connected:
                     await client.start_notify(14, self.notification_callback)
                     await client.write_gatt_char(12, data)
@@ -59,15 +59,17 @@ class BleakClientAssistant:
                 else:
                    await asyncio.sleep(1)
                    pass
+        except AttributeError as e:
+            print("Ошибка AttributeError:", e, self.device)
         except Exception as e:
-            #print(e, type(e))
+            print(e, type(e))
             pass
         finally:
             if self.hk and self.lk and self.ul is not None:
-                print(Fore.GREEN + f'\t\tУстройство {self.device}: оттарировано!')
+                print(Fore.GREEN + f'\t\tУстройство {self.device}: оттарировано!'+ Style.RESET_ALL)
                 return self.hk, self.lk, self.ul
             else:
-                print(Fore.RED + f'\t\tУстройство {self.device}: ошибка подключения!')
+                print(Fore.RED + f'\t\tУстройство {self.device}: ошибка подключения!'+ Style.RESET_ALL)
                 return 0, 0, 0
 
 
@@ -87,4 +89,6 @@ if __name__ == '__main__':
         asyncio.set_event_loop(loop)
         device = 'D1:4B:69:BE:F0:C5'
         client_assistant = BleakClientAssistant(device, period=25000, fl=24496, temp=25, loop=loop)
-        loop.run_until_complete(client_assistant.run())
+        hk, lk, ul = loop.run_until_complete(client_assistant.run())
+        print(hk, lk, ul)
+

@@ -5,8 +5,8 @@ import random
 import datetime
 from colorama import init, Fore, Style
 import argparse
-
-init()
+import sys
+import time
 
 
 class Core:
@@ -116,26 +116,23 @@ async def core_program(loop, timeout, start_serial, end_serial, report_path):
     core = Core(loop, timeout=timeout, start_serial=start_serial, end_serial=end_serial, device_type='TD')
     await core.run_scanner()
     await core.queue_to_connection()
-    await asyncio.sleep(1)
     print(core.my_scanner.dc.get_dataframe())
-    core.my_scanner.dc.to_excel(report_path + '/' + 'tariffy_' + str(start_serial) + '-' + str(end_serial) + '.xlsx', core.atrribute_error_fla)
+    core.my_scanner.dc.to_excel(report_path + '/' + 'tariffy_' + str(start_serial) + '-' + str(end_serial) + '.xlsx', core.atrribute_error_flag)
+    for i in range(5, 0, -1):
+        print(Fore.YELLOW + f"Closing console in {i} seconds...")
+        time.sleep(1)
+
+    sys.exit()
 
 async def main(loop, timeout, start_serial, end_serial, report_path):
     await core_program(loop, timeout, start_serial, end_serial, report_path)
 
-if __name__ == '__main__':
-    loop = asyncio.new_event_loop()
-    loop.set_debug(True)
-    asyncio.set_event_loop(loop)
-    loop.run_until_complete(main(loop, timeout=120, start_serial=400043, end_serial=400052, report_path='C:/Users/User/Desktop'))
-
-
+init()
 parser = argparse.ArgumentParser()
 parser.add_argument('start_serial', type=int, help='Start serial number')
 parser.add_argument('end_serial', type=int, help='End serial number')
 parser.add_argument('timeout', type=int, help='Timeout')
-parser.add_argument('report_path', default='C:/Users/User/Desktop', type=str, help='Report path')
-
+parser.add_argument('report_path', type=str, help='Report path')
 
 args = parser.parse_args()
 
@@ -146,3 +143,9 @@ report_path = args.report_path
 loop = asyncio.new_event_loop()
 asyncio.set_event_loop(loop)
 loop.run_until_complete(main(loop, timeout, start_serial, end_serial, report_path))
+
+if __name__ == '__main__':
+    loop = asyncio.new_event_loop()
+    loop.set_debug(True)
+    asyncio.set_event_loop(loop)
+    loop.run_until_complete(main(loop, timeout=120, start_serial=400043, end_serial=400052, report_path='C:/Users/User/Desktop'))

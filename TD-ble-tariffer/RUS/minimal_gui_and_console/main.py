@@ -6,15 +6,28 @@ from tkinter import filedialog
 
 import subprocess
 
+"""
+Отличия от консольной версии в main.py и Core.py:
+В десктоп версии main.py содержит минимальный пользовательский интерфейс, в консольной версии это только точка входа в программу.
+Core.py отличается только наличием argparse данных с гуи.
+
+"""
+
 class ScannerGUI:
+    """
+    Класс для создания графического интерфейса сканера
+    
+    """
     def __init__(self, master):
+        """
+        Инициализация объекта класса ScannerGUI
+
+        :param master: Родительское окно 
+
+        """
         self.master = master
-
-
         master.title("Установка параметров сканирования:")
-
         master.geometry("320x180+{}+{}".format(int(master.winfo_screenwidth()/2 - 400), int(master.winfo_screenheight()/2 - 300)))
-
         master.resizable(False, False)
 
 
@@ -44,15 +57,27 @@ class ScannerGUI:
 
 
     def select_report_path(self):
+        """
+        Метод вызывается при нажатии кнопки 'Путь к отчету'
+        и открывает диалоговое окно для выбора пути к отчету
+
+        """
         file_path = filedialog.askdirectory()
         if file_path:
             self.report_path = file_path
 
+
     def start_scan(self):
+        """
+        Метод вызывается при нажатии кнопки 'Перейти в режим сканирования и тарировки'
+        Проверяет, выбран ли путь к отчету. Если не выбран, показывает всплывающее окно с предупреждением.
+        Затем запускает сканирование и тарировку.
+
+        """
         timeout = int(self.timeout_entry.get())
         start_serial = int(self.start_serial_entry.get())
         end_serial = int(self.end_serial_entry.get())
-        device_type = 'TD'
+
 
         if not hasattr(self, "report_path"):
             tk.messagebox.showerror("Выберите путь", "Для создания отчета нужно выбрать путь для его сохранения!")
@@ -64,7 +89,7 @@ class ScannerGUI:
 
         script_path = os.path.join(current_dir, "Core.py")
 
-        subprocess.Popen(["python", script_path, device_type, str(start_serial), str(end_serial), str(timeout), self.report_path])
+        subprocess.Popen(["python", script_path, str(start_serial), str(end_serial), str(timeout), self.report_path], creationflags=subprocess.CREATE_NEW_CONSOLE)
 
 
 root = tk.Tk()

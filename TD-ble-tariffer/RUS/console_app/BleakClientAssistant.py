@@ -24,7 +24,38 @@ init()
 
 
 class BleakClientAssistant:
+    """
+    Описание класса BleakClientAssistant.
+
+    Атрибуты:
+    - fl (int): уровень топлива.
+    - period (int): период.
+    - temp (int): температура.
+    - temp_corr (int): коэффициент термокоррекции.
+    - device (str): строковый параметр, представляющий устройство (может быть TD и TH).
+    - connected (bool): флаг, указывающий на состояние подключения.
+    - hk (int): верхний уровень после тарировки.
+    - lk (int): нижний уровень после тарировки.
+    - ul (int): уровень топлива после тарировки.
+
+    Методы:
+    - __init__(self, fl, period, temp, temp_corr, device): конструктор класса.
+    - run(self): метод, выполняющий подключение и отправку сообщения для тарировки.
+    - notification_callback(self, sender, data): метод обратного вызова для обработки уведомлений.
+
+    """
     def __init__(self, device, period, temp, fl, loop):
+        """
+        Конструктор класса ClassName.
+
+        Параметры:
+        - fl (int): уровень топлива.
+        - period (int): период.
+        - temp (int): температура.
+        - temp_corr (int): коэффициент термокоррекции.
+        - device (str): строковый параметр, представляющий устройство (может быть TD и TH).
+
+        """
         self.device = device
         self.period = period
         self.temp = temp
@@ -35,6 +66,8 @@ class BleakClientAssistant:
         self.loop = loop
         self.connected = False
 
+        # Расчет коэффициента коррекции
+
         if temp >= 0:
             self.temp_corr = 6
         else:
@@ -42,13 +75,23 @@ class BleakClientAssistant:
 
 
     async def run(self):
-        if self.fl == 6500 or self.fl == 7000: # если бракованный, то не тарировать
+        """
+        Метод, выполняющий подключение и отправку сообщения для тарировки.
+
+        Возвращает:
+        - tuple: кортеж с значениями hk, lk, ul или ошибкой подключения.
+
+        """
+        # если датчик бракованный, то не тарировать
+        if self.fl == 6500 or self.fl == 7000: 
                 return 1, 1, 7000
         try:
             empty = int(self.period - self.temp_corr * self.temp + 50)
             full = int(2.03*(self.period - 9400) + 9400 - self.temp*(self.temp_corr-self.period / 2400))
+            # сбор пакета для отправки
             data = b"SD, LK:1:%s, HK:1:%s" % (str(empty).encode(), str(full).encode())
-            print(Fore.GREEN + f'Пытаюсь установить соединение с {self.device}...' )     
+            print(Fore.GREEN + f'Пытаюсь установить соединение с {self.device}...' )
+            # Подключение к устройству и отправка сообщения с тарировочной командой
             async with BleakClient(self.device, timeout=60) as client:
                 if client is not None and not self.connected:
                     await client.start_notify(14, self.notification_callback)
@@ -56,13 +99,13 @@ class BleakClientAssistant:
                     await client.write_gatt_char(12, b"GA\r") 
                     await asyncio.sleep(1)
                     self.connected = True
-                else:
-                   await asyncio.sleep(1)
-                   pass
         except AttributeError as e:
-            print("Ошибка AttributeError:", e, self.device)
+            # костыль AtributeError для библиотеки bleak (в редких случаях возникает непонятная ошибка в самой библиотеке, если она появилось - дачик уже не сможет подключиться в этой сессии)
+            self.hk = 10
+            self.lk = 10
+            self.ul = 10
         except Exception as e:
-            print(e, type(e))
+            #print(e, type(e)) отладочное сообщение
             pass
         finally:
             if self.hk and self.lk and self.ul is not None:
@@ -74,6 +117,14 @@ class BleakClientAssistant:
 
 
     def notification_callback(self, sender, data):
+        """
+        Метод обратного вызова для обработки уведомлений.
+
+        Параметры:
+        - sender: отправитель уведомления.
+        - data: данные уведомления.
+        
+        """
         match = re.search(b"UL:1:(\d+),HK:1:(\d+),LK:1:(\d+)", data) # UL:1:(\d+),
         if match:
             self.ul = int(match.group(1))

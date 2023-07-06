@@ -1,32 +1,20 @@
-import os
+from Core import Core
 import asyncio
-from MyScanner import MyScanner
 
+async def core_program(loop, timeout, start_serial, end_serial, i):
+    core = Core(loop, timeout=timeout, start_serial=start_serial, end_serial=end_serial, device_type='TD')
+    await core.run_scanner()
+    await core.queue_to_connection()
+    await asyncio.sleep(1)
+    print(core.my_scanner.dc.get_dataframe())
+    core.my_scanner.dc.to_excel('C:/Users/User/Desktop/tariffy_test' + '/' + str(i) + 'tariffy_' + str(start_serial) + '-' + str(end_serial) + '.xlsx', core.atrribute_error_flag)
 
-try:
-    from colorama import init, Fore, Style
-except:
-    os.system('pip install colorama==0.4.6')
+async def main(loop, timeout, start_serial, end_serial):
+    for i in range(100):
+        await core_program(loop, timeout, start_serial, end_serial, i)
 
-
-init()
-
-loop = asyncio.new_event_loop()
-loop.set_debug(True)
-asyncio.set_event_loop(loop)
-
-async def run_scanner():
-    #start_serial = int(input('Type start serial (only six numers): '))
-    #end_serial = int(input('Type start serial (only six numers): '))
-    #timeout = int(input('Type time in seconds for timeout scanning: '))
-    my_scanner = MyScanner(timeout=120, start_serial=400043, end_serial=400052, device_type='TD', loop=loop)
-    await my_scanner.run()
-    print(my_scanner.get_dataframe())
-    report_path = r'C:/Users/User/Desktop/TEST'
-    filename = '1111.xlsx'
-    my_scanner.to_excel(report_path + '/' + filename)
-
-async def main():
-    await run_scanner()
-
-loop.run_until_complete(main())
+if __name__ == '__main__':
+    loop = asyncio.new_event_loop()
+    loop.set_debug(True)
+    asyncio.set_event_loop(loop)
+    loop.run_until_complete(main(loop, timeout=200, start_serial=400043, end_serial=400052))

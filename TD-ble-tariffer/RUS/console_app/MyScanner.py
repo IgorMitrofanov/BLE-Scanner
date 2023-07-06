@@ -1,25 +1,10 @@
 import os
-
-
-try:
-    from bleak import BleakScanner
-except:
-    os.system('pip install bleak==0.20.2')
-    from bleak import BleakScanner
-
+from bleak import BleakScanner
 import datetime
 import asyncio
 from DataCollector import DataCollector
 from adv_decrypt import adv_decrypt
-
-
-try:
-    from colorama import init, Fore, Style
-except:
-    os.system('pip install colorama==0.4.6')
-
-
-init()
+from colorama import init, Fore, Style
 
 
 class MyScanner:
@@ -108,16 +93,20 @@ class MyScanner:
             pass
 
 async def run_scanner():
-    #start_serial = int(input('Type start serial (only six numers): '))
-    #end_serial = int(input('Type start serial (only six numers): '))
-    #timeout = int(input('Type time in seconds for timeout scanning: '))
+    # start_serial = int(input('Type start serial (only six numers): '))
+    # end_serial = int(input('Type start serial (only six numers): '))
+    # timeout = int(input('Type time in seconds for timeout scanning: '))
     my_scanner = MyScanner(timeout=10, start_serial=400043, end_serial=400052, device_type='TD', loop=loop)
     result = await my_scanner.run()
     return result
 
+
+init()
+
 async def main():
     result = await run_scanner()
     print(result)
+
 
 if __name__ == '__main__':
     loop = asyncio.new_event_loop()

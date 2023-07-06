@@ -1,20 +1,7 @@
 import os
-
-try:
-    import pandas as pd
-except:
-    os.system('pip install pandas==2.0.2')
-    import pandas as pd
-
-try:
-    import openpyxl
-    from openpyxl.styles import PatternFill, Font
-except:
-    os.system('pip install openpyxl==3.1.2')
-    import openpyxl
-    from openpyxl.styles import PatternFill, Font
-
-
+import pandas as pd
+import openpyxl
+from openpyxl.styles import PatternFill, Font
 import datetime
 import numpy as np
 

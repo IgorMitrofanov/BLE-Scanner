@@ -1,20 +1,5 @@
-import os
-
-
-try:
-    from bleak import BleakClient
-
-except:
-    os.system('pip install bleak')
-    from bleak import BleakClient
-
-
-try:
-    from colorama import init, Fore, Style
-except:
-    os.system('pip install colorama==0.4.6')
-
-
+from bleak import BleakClient
+from colorama import init, Fore, Style
 import asyncio
 import re
 import datetime

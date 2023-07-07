@@ -1,28 +1,24 @@
 import os
-
-
-try:
-    from bleak import BleakScanner
-except:
-    os.system('pip install bleak==0.20.2')
-    from bleak import BleakScanner
-
+from bleak import BleakScanner
 import datetime
 import asyncio
 from DataCollector import DataCollector
 from adv_decrypt import adv_decrypt
-
-
-try:
-    from colorama import init, Fore, Style
-except:
-    os.system('pip install colorama==0.4.6')
-
-
-init()
+from colorama import init, Fore, Style
 
 
 class MyScanner:
+    """
+    Инициализирует объект MyScanner.
+
+    Параметры:
+    - timeout: время (в секундах) сканирования устройств
+    - start_serial: начальный серийный номер устройства
+    - end_serial: конечный серийный номер устройства
+    - device_type: тип устройства
+    - loop: объект asyncio event loop
+
+    """
     def __init__(self, timeout, start_serial, end_serial, device_type, loop):
         self._scanner = BleakScanner(detection_callback=self.detection_callback, loop=loop)
         self.scanning = asyncio.Event()
@@ -35,6 +31,14 @@ class MyScanner:
 
 
     async def detection_callback(self, device, advertisement_data):
+        """
+        Callback-функция, вызываемая при обнаружении нового устройства.
+
+        Параметры:
+        - device: объект устройства
+        - advertisement_data: данные рекламного пакета
+
+        """
         try:
             if device.name in self.dc.device_names: 
                 
@@ -58,13 +62,19 @@ class MyScanner:
                 self.dc.update_char(device.name, 'Период', cnt_raw)
 
         except Exception as e:
-            #print(Fore.RED + f"Error in callback (scanner): {e}")
+            #print(Fore.RED + f"Error in callback (scanner): {e}") # отладочный вывод
             pass
 
 
     async def run(self):
+        """
+        Запускает процесс сканирования устройств и выполнения других задач.
+
+        Параметры:
+        - timeout: время (в секундах) сканирования устройств
+        """
         try:
-            print(Style.RESET_ALL + datetime.datetime.now().strftime('%Y/%m/%d %H:%M:%S') + Fore.GREEN + f'\t\tЗапущенно сканирование в течение {self.timeout} секунд...')
+            print(Style.RESET_ALL + datetime.datetime.now().strftime('%Y/%m/%d %H:%M:%S') + Fore.GREEN + f'\t\tВыполняется сканирование в течение {self.timeout} секунд...')
             await self._scanner.start()
             self.scanning.set()
             end_time = self.loop.time() + self.timeout
@@ -86,16 +96,16 @@ class MyScanner:
                                     new_timeout = int(input('Время сканирования (только целые числа): '))
                                     self.timeout = new_timeout
                                     end_time = self.loop.time() + self.timeout
-                                    print(Style.RESET_ALL + datetime.datetime.now().strftime('%Y/%m/%d %H:%M:%S') + Fore.GREEN + f'\t\tЗапущенно сканирование в течение {self.timeout} секунд...')
+                                    print(Style.RESET_ALL + datetime.datetime.now().strftime('%Y/%m/%d %H:%M:%S') + Fore.GREEN + f'\t\tВыполняется сканирование в течение {self.timeout} секунд...')
                                 except:
                                     print(Fore.RED + 'Время сканирования может быть только целочисленное!' + Style.RESET_ALL)
                                     new_timeout = int(input('Время сканирования (только целые числа): '))
                                     self.timeout = new_timeout
                                     end_time = self.loop.time() + self.timeout
-                                    print(Style.RESET_ALL + datetime.datetime.now().strftime('%Y/%m/%d %H:%M:%S') + Fore.GREEN + f'\t\tЗапущенно сканирование в течение {self.timeout} секунд...')
+                                    print(Style.RESET_ALL + datetime.datetime.now().strftime('%Y/%m/%d %H:%M:%S') + Fore.GREEN + f'\t\tВыполняется сканирование в течение {self.timeout} секунд...')
                             else:
                                 end_time = self.loop.time() + self.timeout
-                                print(Style.RESET_ALL + datetime.datetime.now().strftime('%Y/%m/%d %H:%M:%S') + Fore.GREEN + f'\t\tЗапущенно сканирование в течение {self.timeout} секунд...')
+                                print(Style.RESET_ALL + datetime.datetime.now().strftime('%Y/%m/%d %H:%M:%S') + Fore.GREEN + f'\t\tВыполняется сканирование в течение {self.timeout} секунд...')
                         else:
                             print(Style.RESET_ALL + datetime.datetime.now().strftime('%Y/%m/%d %H:%M:%S') + Fore.RED + f"\t\tВремя сканирования вышло. Не найденные устройства: {self.dc.device_names}")
                 else:
@@ -104,20 +114,24 @@ class MyScanner:
             await self._scanner.stop()
             return self.devices_to_connect
         except Exception as e:
-            print(Fore.RED + f"Error in run (scanner): {e}")
+            #print(Fore.RED + f"Error in run (scanner): {e}") # отладочный вывод
             pass
 
 async def run_scanner():
-    #start_serial = int(input('Type start serial (only six numers): '))
-    #end_serial = int(input('Type start serial (only six numers): '))
-    #timeout = int(input('Type time in seconds for timeout scanning: '))
+    # start_serial = int(input('Type start serial (only six numers): '))
+    # end_serial = int(input('Type start serial (only six numers): '))
+    # timeout = int(input('Type time in seconds for timeout scanning: '))
     my_scanner = MyScanner(timeout=10, start_serial=400043, end_serial=400052, device_type='TD', loop=loop)
     result = await my_scanner.run()
     return result
 
+
+init()
+
 async def main():
     result = await run_scanner()
     print(result)
+
 
 if __name__ == '__main__':
     loop = asyncio.new_event_loop()

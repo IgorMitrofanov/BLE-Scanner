@@ -1,5 +1,40 @@
 import os
 import sys
+
+# Установка библиотек при первом запуске
+
+try:
+    import openpyxl
+    from openpyxl.styles import PatternFill, Font
+except:
+    os.system('pip install openpyxl==3.1.2')
+
+try:
+    from bleak import BleakClient
+
+
+except:
+    os.system('pip install bleak')
+    from bleak import BleakClient
+
+try:
+    from bleak import BleakScanner
+except:
+    os.system('pip install bleak==0.20.2')
+
+
+try:
+    from colorama import init, Fore, Style
+except:
+    os.system('pip install colorama==0.4.6')
+
+
+try:
+    import pandas as pd
+except:
+    os.system('pip install pandas==2.0.2')
+    import pandas as pd
+
 import tkinter as tk
 import tkinter as tk
 from tkinter import filedialog
@@ -89,7 +124,7 @@ class ScannerGUI:
 
         script_path = os.path.join(current_dir, "Core.py")
 
-        subprocess.Popen(["python", script_path, str(start_serial), str(end_serial), str(timeout), self.report_path])
+        subprocess.Popen(["python", script_path, str(start_serial), str(end_serial), str(timeout), self.report_path], creationflags=subprocess.CREATE_NEW_CONSOLE)
 
 
 root = tk.Tk()

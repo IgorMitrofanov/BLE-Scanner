@@ -1,26 +1,9 @@
 import os
-
-
-try:
-    from bleak import BleakClient
-
-except:
-    os.system('pip install bleak')
-    from bleak import BleakClient
-
-
-try:
-    from colorama import init, Fore, Style
-except:
-    os.system('pip install colorama==0.4.6')
-
-
+from bleak import BleakClient
+from colorama import init, Fore, Style
 import asyncio
 import re
 import datetime
-
-
-init()
 
 
 class BleakClientAssistant:
@@ -130,6 +113,10 @@ class BleakClientAssistant:
             self.ul = int(match.group(1))
             self.hk = int(match.group(2))
             self.lk = int(match.group(3))
+
+
+
+init()
 
 
 if __name__ == '__main__':

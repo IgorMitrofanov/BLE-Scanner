@@ -118,8 +118,8 @@ async def core_program(loop, timeout, start_serial, end_serial, report_path):
     await core.queue_to_connection()
     print(core.my_scanner.dc.get_dataframe())
     core.my_scanner.dc.to_excel(report_path + '/' + 'tariffy_' + str(start_serial) + '-' + str(end_serial) + '.xlsx', core.atrribute_error_flag)
-    for i in range(5, 0, -1):
-        print(Fore.YELLOW + f"Closing console in {i} seconds...")
+    for i in range(10, 0, -1):
+        print(Fore.YELLOW + f"Программа завершится автоматически через {i} секунд...")
         time.sleep(1)
 
     sys.exit()

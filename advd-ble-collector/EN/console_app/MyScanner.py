@@ -1,25 +1,23 @@
 import os
-
-try:
-    import pandas as pd
-except:
-    os.system('pip install pandas')
-    import pandas as pd
-
-try:
-    from bleak import BleakScanner
-except:
-    os.system('pip install bleak')
-    from bleak import BleakScanner
-
+import pandas as pd
+from bleak import BleakScanner
 import asyncio
-
 import datetime
-
 from DataCollector import DataCollector
 from adv_decrypt import adv_decrypt
 
+
 class MyScanner:
+    """
+    Initializes the Myscaner object.
+
+    Parameters:
+    - timeout: scan timeout in seconds
+    - start_serial: initial serial number
+    - end_serial: the final serial number
+    - device_type: device type
+    - loop: asynchronous execution loop
+    """
     def __init__(self, timeout, start_serial, end_serial, device_type, loop):
         self._scanner = BleakScanner(detection_callback=self.detection_callback, loop=loop)
         self.scanning = asyncio.Event()
@@ -28,7 +26,15 @@ class MyScanner:
         self.loop = loop
         self.device_type = device_type
 
+
     def detection_callback(self, device, advertisement_data):
+        """
+        Callback is a function for processing detected devices.
+
+        Parameters:
+        - device: detected device
+        - advertisement_data: device ad data
+        """
         try:
             if device.name in self.dc.device_names: 
                 
@@ -61,9 +67,16 @@ class MyScanner:
                     self.dc.update_char(device.name, 'Light', TH09_light_raw)
 
         except Exception as e:
-            print(f"Error in callback (scanner): {e}")
             
+            # print(f"Error in callback (scanner): {e}") # Debugging output
+
+            pass
+            
+
     async def run(self):
+        """
+        Starts scanning and collecting data for the specified range of serial numbers and device type.
+        """
         try:
             print(f'\t\tStarted scanning with {self.timeout} seconds timeout...')
             await self._scanner.start()
@@ -103,11 +116,22 @@ class MyScanner:
                     await asyncio.sleep(0.1)
             await self._scanner.stop()
         except Exception as e:
-            print(f"Error in run (scanner): {e}")
+
+            #print(f"Error in run (scanner): {e}") # Debugging output
+            
+            pass
+
 
     def get_dataframe(self):
+        """
+        Returns the Data Frame with the collected data.
+
+        Returns:
+        - DataFrame with collected data
+        """
         return self.dc.get_dataframe()
     
+
     def to_excel(self, xls_path):
         date_and_time_write = datetime.datetime.now().strftime('%Y_%m_%d %H-%M')
         self.dc.get_dataframe().to_excel(xls_path, sheet_name=date_and_time_write)

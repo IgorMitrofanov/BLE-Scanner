@@ -10,7 +10,6 @@ def adv_decrypt(data, device_type):
         В зависимости от типа устройств:
         TD: oil_level_raw, battery_voltage, TD_temp_raw, version_raw, cnt_raw
         TH: TH09_temp, TH09_light_raw, TH09_humidity, TH09_battery, TH09_version_raw
-
     """
     if device_type == 'TD':
 

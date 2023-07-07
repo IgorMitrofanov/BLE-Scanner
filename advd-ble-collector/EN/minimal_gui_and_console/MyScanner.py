@@ -1,26 +1,26 @@
 import os
-
-try:
-    from bleak import BleakScanner
-except:
-    os.system('pip install bleak==0.20.2')
-    from bleak import BleakScanner
-    
+from bleak import BleakScanner    
 import asyncio
 import datetime
-
-try:
-    from colorama import init, Fore, Style
-except:
-    os.system('pip install colorama==0.4.6')
-
-init()
-
+from colorama import init, Fore, Style
 from DataCollector import DataCollector
 from adv_decrypt import adv_decrypt
 
 
+init()
+
+
 class MyScanner:
+    """
+    Initializes the Myscaner object.
+
+    Parameters:
+    - timeout: scan timeout in seconds
+    - start_serial: initial serial number
+    - end_serial: the final serial number
+    - device_type: device type
+    - loop: asynchronous execution loop
+    """ 
     def __init__(self, timeout, start_serial, end_serial, device_type, loop):
         self._scanner = BleakScanner(detection_callback=self.detection_callback, loop=loop)
         self.scanning = asyncio.Event()
@@ -29,7 +29,15 @@ class MyScanner:
         self.loop = loop
         self.device_type = device_type
 
+
     def detection_callback(self, device, advertisement_data):
+        """
+        Callback is a function for processing detected devices.
+
+        Parameters:
+        - device: detected device
+        - advertisement_data: device ad data
+        """
         try:
             if device.name in self.dc.device_names: 
                 
@@ -63,9 +71,16 @@ class MyScanner:
                     self.dc.update_char(device.name, 'Light', TH09_light_raw)
 
         except Exception as e:
-            print(Fore.RED + f"Error in callback (scanner): {e}")
+            
+            # print(f"Error in callback (scanner): {e}") # Debugging output
+
+            pass
+            
             
     async def run(self):
+        """
+        Starts scanning and collecting data for the specified range of serial numbers and device type.  
+        """
         try:
             print(Fore.GREEN  + datetime.datetime.now().strftime('%Y/%m/%d %H:%M') +  f'\t\tStarted scanning in {self.device_type}-mode with {self.timeout} seconds timeout...')
             await self._scanner.start()
@@ -105,12 +120,29 @@ class MyScanner:
                     await asyncio.sleep(0.1)
             await self._scanner.stop()
         except Exception as e:
-            print(Fore.RED + f"Error in run (scanner): {e}")
+            
+            #print(Fore.RED + f"Error in run (scanner): {e}") # Debugging output
+            
+            pass
+
 
     def get_dataframe(self):
+        """
+        Returns the Data Frame with the collected data.
+
+        Returns:
+        - - Data Frame with collected data
+        """
         return self.dc.get_dataframe()
     
+
     def to_excel(self, xls_path):
+        """
+        Exports data in Excel format.
+
+        Parameters:
+        - xls_path: path to the Excel file
+        """
         date_and_time_write = datetime.datetime.now().strftime('%Y_%m_%d %H-%M')
         self.dc.get_dataframe().to_excel(xls_path, sheet_name=date_and_time_write)
         import openpyxl
@@ -120,17 +152,18 @@ class MyScanner:
         ws = wb.active
 
         for row in ws.iter_rows(min_row=2):
-            fuel_level = row[7].value # Порядковый номер столбца Fuel Level = 3
-            period = row[8].value # Порядковый номер столбца Period = 6
+            fuel_level = row[7].value 
+            period = row[8].value 
             if fuel_level in (6500, 7000):
                 row[9].value = "FUEL LEVEL = 6500 OR 7000"
                 for cell in row:
                     cell.fill = PatternFill(start_color='FFFF0000', end_color='FFFF0000', fill_type='solid')
-                    cell.font = Font(color='FFFFFF') # Белый цвет шрифта
+                    cell.font = Font(color='FFFFFF') 
             elif period < 20000:
                 row[9].value = "Period < 20000"
                 for cell in row:
                     cell.fill = PatternFill(start_color='FFFF0000', end_color='FFFF0000', fill_type='solid')
-                    cell.font = Font(color='FFFFFF') # Белый цвет шрифта
+                    cell.font = Font(color='FFFFFF') 
 
         wb.save(xls_path)
+

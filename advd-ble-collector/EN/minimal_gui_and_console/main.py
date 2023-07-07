@@ -1,10 +1,32 @@
 import os
+
+# Installing libraries at first launch if necessary
+
+try:
+    import pandas as pd
+except:
+    os.system('pip install pandas')
+    import pandas as pd
+
+try:
+    from bleak import BleakScanner
+except:
+    os.system('pip install bleak')
+    from bleak import BleakScanner
+
+try:
+    import numpy as np
+except:
+    os.system('pip install numpy')
+    import numpy as np
+
+    
 import sys
 import tkinter as tk
 import tkinter as tk
 from tkinter import filedialog
-
 import subprocess
+
 
 class ScannerGUI:
     def __init__(self, master):
@@ -59,6 +81,7 @@ class ScannerGUI:
         self.scan_button = tk.Button(master, text="Switch to scan mode", command=self.start_scan)
         self.scan_button.pack()
 
+
     def toggle_report(self):
         self.generate_report = not self.generate_report
 
@@ -67,11 +90,13 @@ class ScannerGUI:
         else:
             self.select_report_path_button.config(state="disabled")
 
+
     def select_report_path(self):
         file_path = filedialog.askdirectory()
 
         if file_path:
             self.report_path = file_path
+
 
     def start_scan(self):
         timeout = int(self.timeout_entry.get())
@@ -96,6 +121,7 @@ class ScannerGUI:
             subprocess.Popen(["python", script_path, device_type, str(start_serial), str(end_serial), str(timeout), self.report_path], creationflags=subprocess.CREATE_NEW_CONSOLE)
         else:
             subprocess.Popen(["python", script_path, device_type, str(start_serial), str(end_serial), str(timeout), 'WITHOUT_WRITE'], creationflags=subprocess.CREATE_NEW_CONSOLE)
+
 
 root = tk.Tk()
 scanner_gui = ScannerGUI(root)

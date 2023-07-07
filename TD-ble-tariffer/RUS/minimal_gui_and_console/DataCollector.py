@@ -22,7 +22,6 @@ class DataCollector:
     - update_char(self, device_name, char_name, value): метод для обновления значения характеристики.
     - get_dataframe(self): метод для получения данных в виде pandas DataFrame.
     - to_excel(self, xls_path): метод для сохранения данных в файл Excel.
-
     """
     def __init__(self, start_serial, end_serial, device_type):
         """
@@ -32,7 +31,6 @@ class DataCollector:
         - start_serial (int): начальный серийный номер.
         - end_serial (int): конечный серийный номер.
         - device_type (str): тип устройства.
-
         """
         self.start_serial = start_serial
         self.end_serial = end_serial
@@ -54,16 +52,6 @@ class DataCollector:
                                     'L': [None] * len(self.device_names),
                                     'Уровень топлива после тарировки': [None] * len(self.device_names),
                                     'Причина отбраковки': [None] * len(self.device_names)})
-        elif device_type == 'TH':
-        
-            self.df = pd.DataFrame({'Имя': self.device_names, 
-                                    'MAC': [None] * len(self.device_names),
-                                    'RSSI': [None] * len(self.device_names),
-                                    'Версия прошивки': [None] * len(self.device_names),
-                                    'Напряжение батареи': [None] * len(self.device_names),
-                                    'Темпеарутра': [None] * len(self.device_names),
-                                    'Влажность': [None] * len(self.device_names),
-                                    'Освещенность' : [None] * len(self.device_names)})
 
 
     def update_char(self, device_name, char_name, value):
@@ -74,7 +62,6 @@ class DataCollector:
         - device_name (str): имя устройства.
         - char_name (str): имя характеристики.
         - value: новое значение характеристики.
-
         """
         index = self.df.index[self.df['Имя'] == device_name][0]
         self.df.loc[index, char_name] = value
@@ -86,7 +73,6 @@ class DataCollector:
 
         Возвращает:
         - pandas.DataFrame: данные в виде DataFrame.
-
         """
         return self.df
     
@@ -98,7 +84,6 @@ class DataCollector:
         Параметры:
         - xls_path (str): путь к файлу Excel.
         - atrribute_error_flag (bool): костыль для библиотеки bleak, позволяет сделать пометку, что не все устройства были оттарированы
-
         """
         date_and_time_write = datetime.datetime.now().strftime('%Y_%m_%d %H_%M')
         self.get_dataframe().to_excel(xls_path, sheet_name=date_and_time_write)
@@ -106,13 +91,13 @@ class DataCollector:
         wb = openpyxl.load_workbook(xls_path)
         ws = wb.active
 
-        # определяем цвет заливки
+        # Определяем цвет заливки
         red_fill = PatternFill(start_color='FFFF0000', end_color='FFFF0000', fill_type='solid')
         white_font = Font(color='FFFFFF') # Белый цвет шрифта
 
         avg_temp = np.mean([row[6].value for row in ws.iter_rows(min_row=2)])
 
-        # проходимся по всем строкам, начиная со второй
+        # Проходимся по всем строкам, начиная со второй
         for row in ws.iter_rows(min_row=2):
             temp = row[6].value 
             hk = row[9].value 

@@ -23,7 +23,6 @@ class Core:
     - run_scanner(self): method for starting device scanning.
     - connect_device(self, device): the method for connecting to the device and calibration.
     - queue_to_connection(self): a method for organizing the connection queue.
-
     """
     def __init__(self, loop, timeout, start_serial, end_serial, device_type):
         """
@@ -36,7 +35,6 @@ class Core:
         - end_serial (str): the final serial number for scanning devices.
         - device_type (str): the type of device to scan.
         - - attribute_error_flag (bool) a crutch for the bleak library
-
         """
         self.loop = loop
         self.devices_to_connect = []
@@ -49,7 +47,6 @@ class Core:
 
         Returns:
         - list: a list of devices to connect.
-
         """
         self.devices_to_connect = await self.my_scanner.run() 
         return self.devices_to_connect
@@ -85,18 +82,17 @@ class Core:
                     print(Fore.YELLOW + f'The calibration of {device} failed, the program needs to be restarted')
                     self.atrribute_error_flag = True
                     return 0
-                
                 # If the calibration was successful, we write the parameters to the Data Collector object
                 else:
                     self.my_scanner.dc.update_char(device.name, 'H', int(hk))
                     self.my_scanner.dc.update_char(device.name, 'L', int(lk))
                     self.my_scanner.dc.update_char(device.name, 'Fuel level after calibrate', int(ul))
 
-                    #self.my_scanner.dc.get_dataframe().to_excel('temp.xlsx') # If you need to save a temporary file after each calibration
+                    # self.my_scanner.dc.get_dataframe().to_excel('temp.xlsx') # If you need to save a temporary file after each calibration
 
                     return 1
             except Exception as e:
-                #print(e) # Debugging output
+                #print(e) # debugging output
                 pass
 
 
@@ -117,45 +113,20 @@ class Core:
                     # If watchdog has worked, we return the device back to the list for connection
                     self.devices_to_connect.append(random_device)
 
-
-async def core_program(loop, timeout, start_serial, end_serial, report_path):
-    core = Core(loop, timeout=timeout, start_serial=start_serial, end_serial=end_serial, device_type='TD')
+async def core_program(loop, i):
+    core = Core(loop, timeout=120, start_serial=400043, end_serial=400052, device_type='TD')
     await core.run_scanner()
     await core.queue_to_connection()
+    await asyncio.sleep(1)
     print(core.my_scanner.dc.get_dataframe())
-    core.my_scanner.dc.to_excel(report_path + '/' + 'tariffy_' + str(start_serial) + '-' + str(end_serial) + '.xlsx', core.atrribute_error_flag)
-    for i in range(10, 0, -1):
-        print(Fore.YELLOW + f"The program will terminate automatically after {i} seconds...")
-        time.sleep(1)
-    sys.exit()
+    core.my_scanner.dc.to_excel(str(i)+'.xlsx', core.atrribute_error_flag)
 
-
-async def main(loop, timeout, start_serial, end_serial, report_path):
-    await core_program(loop, timeout, start_serial, end_serial, report_path)
-
-
-init()
-
-parser = argparse.ArgumentParser()
-parser.add_argument('start_serial', type=int, help='Start serial number')
-parser.add_argument('end_serial', type=int, help='End serial number')
-parser.add_argument('timeout', type=int, help='Timeout')
-parser.add_argument('report_path', type=str, help='Report path')
-
-args = parser.parse_args()
-
-start_serial = args.start_serial
-end_serial = args.end_serial
-timeout = args.timeout
-report_path = args.report_path
-
-loop = asyncio.new_event_loop()
-asyncio.set_event_loop(loop)
-
-loop.run_until_complete(main(loop, timeout, start_serial, end_serial, report_path))
+async def main(loop):
+    for i in range(0, 100):
+        await core_program(loop, i)
 
 if __name__ == '__main__':
     loop = asyncio.new_event_loop()
     loop.set_debug(True)
     asyncio.set_event_loop(loop)
-    loop.run_until_complete(main(loop, timeout=120, start_serial=400043, end_serial=400052, report_path='C:/Users/User/Desktop'))
+    loop.run_until_complete(main(loop))

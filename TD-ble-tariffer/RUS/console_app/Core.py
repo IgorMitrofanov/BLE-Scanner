@@ -36,7 +36,6 @@ class Core:
         - end_serial (str): конечный серийный номер для сканирования устройств.
         - device_type (str): тип устройства для сканирования.
         - atrribute_error_flag (bool) костыль для библиотеки bleak
-
         """
         self.loop = loop
         self.devices_to_connect = []
@@ -49,7 +48,6 @@ class Core:
 
         Возвращает:
         - list: список устройств для подключения.
-
         """
         self.devices_to_connect = await self.my_scanner.run() 
         return self.devices_to_connect
@@ -87,17 +85,16 @@ class Core:
                     self.my_scanner.dc.update_char(device.name, 'H', int(hk))
                     self.my_scanner.dc.update_char(device.name, 'L', int(lk))
                     self.my_scanner.dc.update_char(device.name, 'Уровень топлива после тарировки', int(ul))
-                    #self.my_scanner.dc.get_dataframe().to_excel('temp.xlsx') если потребуется сохранение временного файла после каждой тарировки
+                    # self.my_scanner.dc.get_dataframe().to_excel('temp.xlsx') # Если потребуется сохранение временного файла после каждой тарировки
                     return 1
             except Exception as e:
-                #print(e) отладочный вывод
+                #print(e) # отладочный вывод 
                 pass
 
 
     async def queue_to_connection(self):
             """
             Метод для организации очереди подключения.
-
             """
             while not len(self.devices_to_connect) == 0: 
                 random_device = random.choice(self.devices_to_connect)
@@ -106,10 +103,10 @@ class Core:
                 task = asyncio.create_task(coro)
                 print(Style.RESET_ALL + datetime.datetime.now().strftime('%Y/%m/%d %H:%M:%S') + Fore.GREEN + f'\t\tСчетчик успешных тарировок: {self.my_scanner.dc.start_len-len(self.devices_to_connect)-1}/{self.my_scanner.dc.start_len}')
                 try:
-                    # запускаем задачу с вачдогом в 30 секунд
+                    # Запускаем задачу с вачдогом в 30 секунд
                     done, pending = await asyncio.wait([task], timeout=30) 
                 except asyncio.TimeoutError:
-                    # если вачдог сработал, возвращаем устройство назад в список для подключения
+                    # Если вачдог сработал, возвращаем устройство назад в список для подключения
                     self.devices_to_connect.append(random_device)
 
 async def core_program(loop, i):

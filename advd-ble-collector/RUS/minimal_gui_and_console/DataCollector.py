@@ -1,18 +1,18 @@
 import os
+import pandas as pd
+from openpyxl import Workbook
 
-try:
-    import pandas as pd
-except:
-    os.system('pip install pandas==2.0.2')
-    import pandas as pd
-
-try:
-    from openpyxl import Workbook
-except:
-    os.system('pip install openpyxl==3.1.2')
 
 class DataCollector:
     def __init__(self, start_serial, end_serial, device_type):
+        """
+        Инициализирует объект DataCollector.
+
+        Параметры:
+        - start_serial: начальный серийный номер устройства
+        - end_serial: конечный серийный номер устройства
+        - device_type: тип устройства
+        """
         self.start_serial = start_serial
         self.end_serial = end_serial
         self.device_names = [device_type + '_' + str(i) for i in range(start_serial, end_serial+1)]
@@ -41,9 +41,25 @@ class DataCollector:
                                     'Влажность': [None] * len(self.device_names),
                                     'Освещенность' : [None] * len(self.device_names)})
 
+
     def update_char(self, device_name, char_name, value):
+        """
+        Обновляет значение характеристики устройства.
+
+        Параметры:
+        - device_name: имя устройства
+        - char_name: имя характеристики
+        - value: значение характеристики
+        """
         index = self.df.index[self.df['Имя'] == device_name][0]
         self.df.loc[index, char_name] = value
             
+
     def get_dataframe(self):
+        """
+        Возвращает объект DataFrame с данными устройств.
+
+        Возвращает:
+        - DataFrame с данными устройств
+        """
         return self.df

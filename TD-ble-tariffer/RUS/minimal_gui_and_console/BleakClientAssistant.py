@@ -25,7 +25,6 @@ class BleakClientAssistant:
     - __init__(self, fl, period, temp, temp_corr, device): конструктор класса.
     - run(self): метод, выполняющий подключение и отправку сообщения для тарировки.
     - notification_callback(self, sender, data): метод обратного вызова для обработки уведомлений.
-
     """
     def __init__(self, device, period, temp, fl, loop):
         """
@@ -37,7 +36,6 @@ class BleakClientAssistant:
         - temp (int): температура.
         - temp_corr (int): коэффициент термокоррекции.
         - device (str): строковый параметр, представляющий устройство (может быть TD и TH).
-
         """
         self.device = device
         self.period = period
@@ -50,7 +48,6 @@ class BleakClientAssistant:
         self.connected = False
 
         # Расчет коэффициента коррекции
-
         if temp >= 0:
             self.temp_corr = 6
         else:
@@ -63,9 +60,8 @@ class BleakClientAssistant:
 
         Возвращает:
         - tuple: кортеж с значениями hk, lk, ul или ошибкой подключения.
-
         """
-        # если датчик бракованный, то не тарировать
+        # Если датчик бракованный, то не тарировать
         if self.fl == 6500 or self.fl == 7000: 
                 return 1, 1, 7000
         try:
@@ -83,12 +79,12 @@ class BleakClientAssistant:
                     await asyncio.sleep(1)
                     self.connected = True
         except AttributeError as e:
-            # костыль AtributeError для библиотеки bleak (в редких случаях возникает непонятная ошибка в самой библиотеке, если она появилось - дачик уже не сможет подключиться в этой сессии)
+            # Костыль AtributeError для библиотеки bleak (в редких случаях возникает непонятная ошибка в самой библиотеке, если она появилось - дачик уже не сможет подключиться в этой сессии)
             self.hk = 10
             self.lk = 10
             self.ul = 10
         except Exception as e:
-            #print(e, type(e)) отладочное сообщение
+            # print(e, type(e)) # Отладочное сообщение
             pass
         finally:
             if self.hk and self.lk and self.ul is not None:
@@ -106,7 +102,6 @@ class BleakClientAssistant:
         Параметры:
         - sender: отправитель уведомления.
         - data: данные уведомления.
-        
         """
         match = re.search(b"UL:1:(\d+),HK:1:(\d+),LK:1:(\d+)", data) # UL:1:(\d+),
         if match:

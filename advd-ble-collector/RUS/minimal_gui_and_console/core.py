@@ -1,6 +1,5 @@
 import asyncio
 from MyScanner import MyScanner
-
 import argparse
 import time
 import sys
@@ -12,6 +11,8 @@ except:
     os.system('pip install colorama==0.4.6')
 
 init()
+
+# прием параметров с гуи
 
 parser = argparse.ArgumentParser(description='Scan devices')
 parser.add_argument('device_type', type=str, help='Device type')

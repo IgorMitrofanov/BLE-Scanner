@@ -1,5 +1,16 @@
 def adv_decrypt(data, device_type):
-        
+    """
+    Sends out these advertising packages, outputs and uploads as an advertiser.
+
+    Arguments:
+        Data (bytes): Encrypted data from which to extract information.
+        device_type (str): The type of device for which data is being installed.
+
+    Returns:
+    Depending on the type of devices:
+    TD: oil_level_low, battery_voltage, TD_temp_raw, version_raw, cnt_raw
+    TH: TH09_temp, TH09_light_raw, TH09_humidity, TH09_battery, TH09_version_raw
+    """
     if device_type == 'TD':
 
         battery_voltage_raw = int.from_bytes(data[3:4], byteorder='little', signed=False)

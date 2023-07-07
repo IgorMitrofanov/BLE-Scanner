@@ -89,7 +89,7 @@ class ScannerGUI:
 
         script_path = os.path.join(current_dir, "Core.py")
 
-        subprocess.Popen(["python", script_path, str(start_serial), str(end_serial), str(timeout), self.report_path], creationflags=subprocess.CREATE_NEW_CONSOLE)
+        subprocess.Popen(["python", script_path, str(start_serial), str(end_serial), str(timeout), self.report_path])
 
 
 root = tk.Tk()

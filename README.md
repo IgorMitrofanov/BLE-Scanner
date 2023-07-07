@@ -1,5 +1,5 @@
 # BLE-Scanner
-I.a [Описание проекта]
+## I.a Описание проекта
 Разработка BLE-сканнера для отбраковки и калибровки выпускаемой продукции - датчиков TD (топливные) и TH (температура, давление, влажность, освещенность) - завершена.
 
 Разработка велась на английском языке, позже программа была русифицирована. Репозиторий включает в себя русскую и английскую версию каждой из программ. К тому же есть как десктопная, так и консольная версия каждой из программ (кроме консольной advd-ble-collector на русском языке).
@@ -9,7 +9,7 @@ I.a [Описание проекта]
 1. Автоматизация процессов производства - ранее тарировка каждого датчика выполнялась с помощью смартфонов. Количество производимых датчиков составляет 20 тыс. ежемесячно, и это число постоянно растет.
 2. Улучшение процесса отбраковки и калибровки датчиков - программа позволяет исключить человеческий фактор при отбраковке.
 
-I.b [Project Description]
+## I.b Project Description
 The development of a BLE scanner for the sorting and calibration of TD (fuel) and TH (temperature, pressure, humidity, light) sensors has been completed.
 
 The development was initially carried out in English and later localized into Russian. The repository includes both the Russian and English versions of each program. Additionally, there are both desktop and console versions of each program (except for the Russian console version advd-ble-collector).
@@ -19,7 +19,7 @@ The objectives of the project were:
 1. Automation of production processes (previously, calibration of each sensor was done using smartphones, with 20,000 sensors produced monthly, and the number is increasing).
 2. Improvement of the sorting and calibration process of the sensors (the program aims to eliminate human errors in sorting).
 
-II.a [Программы]
+## II.a Программы
 1. TD-ble-tariffer
 Программа TD-ble-tariffer предназначена для отбраковки датчиков на этапе ОТК и последующей тарировки перед отпуском в продажу.
 
@@ -78,7 +78,7 @@ README
 4. Работа с программой.
 5. Перечислены обновления при наличии.
 
-II.a [Programs]
+## II.a Programs
 
 1. TD-ble-tariffer: a program for sorting the sensors during the quality control stage and subsequent calibration before sale.
 List of technologies and libraries used in the console version of TD-ble-tariffer program:
@@ -138,8 +138,8 @@ For each program, there is a README.txt file in the corresponding directory, whi
 
 
 
-III.a [Контактная информация]
+## III.a Контактная информация
 - Telegram: https://t.me/igor_mtrfnv
 
-III.b [Contact Information]
+## III.b Contact Information
 - Telegram: https://t.me/igor_mtrfnv

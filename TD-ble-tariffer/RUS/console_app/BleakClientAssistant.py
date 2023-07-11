@@ -97,6 +97,7 @@ class BleakClientAssistant:
                 return self.hk, self.lk, self.ul
             else:
                 print(Fore.RED + f'\t\tУстройство {self.device}: ошибка подключения!'+ Style.RESET_ALL)
+                await asyncio.sleep(2) # Задержка перед повторным подключением
                 return 0, 0, 0
 
 

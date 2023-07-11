@@ -94,6 +94,7 @@ class BleakClientAssistant:
                 return self.hk, self.lk, self.ul
             else:
                 print(Fore.RED + f'\t\tDevice {self.device}: filed connection!'+ Style.RESET_ALL)
+                await asyncio.sleep(2) # Delay before reconnecting
                 return 0, 0, 0
 
 

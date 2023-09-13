@@ -65,7 +65,7 @@ class MyScanner:
 
                     TH09_temp, TH09_light_raw, TH09_humidity, TH09_battery, TH09_version_raw = adv_decrypt(advertisement_data.manufacturer_data[3862], device_type=self.device_type)
 
-                    self.dc.update_char(device.name, 'Напряжение батаери', TH09_battery)
+                    self.dc.update_char(device.name, 'Напряжение батареи', TH09_battery)
                     self.dc.update_char(device.name, 'Версия прошивки', TH09_version_raw)
                     self.dc.update_char(device.name, 'Температура', TH09_temp)
                     self.dc.update_char(device.name, 'Влажность', TH09_humidity)

@@ -37,9 +37,10 @@ class DataCollector:
                                     'RSSI': [None] * len(self.device_names),
                                     'Версия прошивки': [None] * len(self.device_names),
                                     'Напряжение батареи': [None] * len(self.device_names),
-                                    'Темпеарутра': [None] * len(self.device_names),
+                                    'Температура': [None] * len(self.device_names),
                                     'Влажность': [None] * len(self.device_names),
-                                    'Освещенность' : [None] * len(self.device_names)})
+                                    'Освещенность' : [None] * len(self.device_names),
+                                    'Причина отбраковки': [None] * len(self.device_names)})
 
 
     def update_char(self, device_name, char_name, value):

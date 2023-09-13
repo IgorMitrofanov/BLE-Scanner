@@ -5,7 +5,8 @@ from DataCollector import DataCollector
 from adv_decrypt import adv_decrypt
 import datetime
 import asyncio
-
+import openpyxl
+from openpyxl.styles import PatternFill, Font
 
 init()
 
@@ -144,24 +145,33 @@ class MyScanner:
         """
         date_and_time_write = datetime.datetime.now().strftime('%Y_%m_%d %H-%M')
         self.dc.get_dataframe().to_excel(xls_path, sheet_name=date_and_time_write)
-        import openpyxl
-        from openpyxl.styles import PatternFill, Font
 
         wb = openpyxl.load_workbook(xls_path)
         ws = wb.active
+        if self.device_type == 'TD':
+            for row in ws.iter_rows(min_row=2):
+                fuel_level = row[7].value 
+                period = row[8].value 
+                if fuel_level in (6500, 7000):
+                    row[9].value = "Уровень топлива = 6500 или 7000"
+                    for cell in row:
+                        cell.fill = PatternFill(start_color='FFFF0000', end_color='FFFF0000', fill_type='solid')
+                        cell.font = Font(color='FFFFFF') 
+                elif period < 20000:
+                    row[9].value = "Период < 20000"
+                    for cell in row:
+                        cell.fill = PatternFill(start_color='FFFF0000', end_color='FFFF0000', fill_type='solid')
+                        cell.font = Font(color='FFFFFF') 
 
-        for row in ws.iter_rows(min_row=2):
-            fuel_level = row[7].value 
-            period = row[8].value 
-            if fuel_level in (6500, 7000):
-                row[9].value = "Уровень топлива = 6500 или 7000"
-                for cell in row:
-                    cell.fill = PatternFill(start_color='FFFF0000', end_color='FFFF0000', fill_type='solid')
-                    cell.font = Font(color='FFFFFF') 
-            elif period < 20000:
-                row[9].value = "Период < 20000"
-                for cell in row:
-                    cell.fill = PatternFill(start_color='FFFF0000', end_color='FFFF0000', fill_type='solid')
-                    cell.font = Font(color='FFFFFF') 
+            wb.save(xls_path)
 
-        wb.save(xls_path)
+        elif self.device_type == 'TH':
+            for row in ws.iter_rows(min_row=2):
+                battarey_voltage = row[5].value 
+                if battarey_voltage < 3.4:
+                    row[9].value = "Напряжение батареи < 3.4 В, проверьте изделие"
+                    for cell in row:
+                        cell.fill = PatternFill(start_color='FFFF0000', end_color='FFFF0000', fill_type='solid')
+                        cell.font = Font(color='FFFFFF') 
+
+            wb.save(xls_path)

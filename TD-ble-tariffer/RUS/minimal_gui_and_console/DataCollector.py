@@ -108,6 +108,7 @@ class DataCollector:
         cyan_fill = PatternFill(start_color='FF00FFFF', end_color='FF00FFFF', fill_type='solid')
         # Белый цвет шрифта
         white_font = Font(color='FFFFFF') 
+        black_font = Font(color='000000') 
 
         avg_temp = np.mean([row[6].value for row in ws.iter_rows(min_row=2)])
 
@@ -122,14 +123,13 @@ class DataCollector:
             if hk and lk and fl and temp and b_voltage is not None:
                 # 6-ой приоритет ошибки
                 if abs(temp - avg_temp) > 5:
-                    errors_message.join("Температура отличается от средней более чем на 5 единиц ")
+                    errors_message += "Температура отличается от средней более чем на 5 единиц "
                     for cell in row:
                         cell.fill = cyan_fill 
                         cell.font = white_font
                 # 5-ый приоритет ошибки
                 elif b_voltage < 3.4:
-                    errors_message.join("Напряжение батареи меньше порога в 3.4В, проверьте изделие ")
-                    row[12].value = "Напряжение батареи меньше порога в 3.4В, проверьте изделие"
+                    errors_message += "Напряжение батареи меньше порога в 3.4В, проверьте изделие "
                     for cell in row:
                         cell.fill = blue_fill
                         cell.font = white_font
@@ -141,52 +141,53 @@ class DataCollector:
                         cell.font = white_font
                 # 3-ий приоритет ошибки
                 elif lk < 19000 and self.TD_length == 1:
-                    errors_message.join("Нижний < 19000 (ДУТ 1 м) ")
+                    errors_message += "Нижний < 19000 (ДУТ 1 м) "
                     for cell in row:
                         cell.fill = yellow_fill
-                        cell.font = white_font
+                        cell.font = black_font
                 elif lk < 28000 and self.TD_length == 1.5:
-                    errors_message.join("Нижний < 28000 (ДУТ 1.5 м) ")
+                    errors_message += "Нижний < 28000 (ДУТ 1.5 м) "
                     for cell in row:
                         cell.fill = yellow_fill
-                        cell.font = white_font
+                        cell.font = black_font
                 elif lk < 37000 and self.TD_length == 2:
-                    errors_message.join("Нижний < 37000 (ДУТ 2 м) ")
+                    errors_message += "Нижний < 37000 (ДУТ 2 м) "
                     for cell in row:
                         cell.fill = yellow_fill
-                        cell.font = white_font
+                        cell.font = black_font
                 elif lk < 46000 and self.TD_length == 3:
-                    errors_message.join("Нижний < 46000 (ДУТ 3 м) ")
+                    errors_message += "Нижний < 46000 (ДУТ 3 м) "
                     for cell in row:
                         cell.fill = yellow_fill
-                        cell.font = white_font
+                        cell.font = black_font
                 # 2-ой приоритет ошибки
                 elif hk > 45000 and self.TD_length == 1:
-                    errors_message.join("Верхний > 45000 (ДУТ 1 м) ")
+                    errors_message += "Верхний > 45000 (ДУТ 1 м) "
                     for cell in row:
                         cell.fill = orange_fill
-                        cell.font = white_font
+                        cell.font = black_font
                 elif hk > 54000 and self.TD_length == 1.5:
-                    errors_message.join("Верхний > 54000 (ДУТ 1.5 м) ")
+                    errors_message += "Верхний > 54000 (ДУТ 1.5 м) "
                     for cell in row:
                         cell.fill = orange_fill
-                        cell.font = white_font
+                        cell.font = black_font
                 elif hk > 66000 and self.TD_length == 2:
-                    errors_message.join("Верхний > 66000 (ДУТ 2 м) ")
+                    errors_message += "Верхний > 66000 (ДУТ 2 м) "
                     for cell in row:
                         cell.fill = orange_fill
-                        cell.font = white_font
+                        cell.font = black_font
                 elif hk > 77000 and self.TD_length == 3:
-                    errors_message.join("Верхний > 77000 (ДУТ 3 м) ")
+                    errors_message += "Верхний > 77000 (ДУТ 3 м) "
                     for cell in row:
                         cell.fill = orange_fill
-                        cell.font = white_font
+                        cell.font = black_font
                 # 1-ый приоритет ошибки
                 elif fl == 7000:
-                    errors_message.join("Текущий = 7000 ")
+                    errors_message += "Текущий = 7000 "
                     for cell in row:
                         cell.fill = red_fill
                         cell.font = white_font
+                row[12].value = errors_message
 
                 
         if atrribute_error_flag == True:

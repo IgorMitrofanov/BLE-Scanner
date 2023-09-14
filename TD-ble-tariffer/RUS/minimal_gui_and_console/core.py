@@ -39,7 +39,7 @@ class Core:
         """
         self.loop = loop
         self.devices_to_connect = []
-        self.my_scanner = MyScanner(timeout=timeout, start_serial=start_serial, end_serial=end_serial, device_type=device_type, loop=loop)
+        self.my_scanner = MyScanner(timeout=timeout, start_serial=start_serial, end_serial=end_serial, device_type=device_type, TD_length=TD_length, loop=loop)
         self.atrribute_error_flag = False
 
     async def run_scanner(self):
@@ -118,8 +118,8 @@ class Core:
                     self.devices_to_connect.append(random_device)
 
 
-async def core_program(loop, timeout, start_serial, end_serial, report_path):
-    core = Core(loop, timeout=timeout, start_serial=start_serial, end_serial=end_serial, device_type='TD')
+async def core_program(loop, timeout, start_serial, end_serial, TD_length, report_path):
+    core = Core(loop, timeout=timeout, start_serial=start_serial, end_serial=end_serial, TD_length=TD_length, device_type='TD')
     await core.run_scanner()
     await core.queue_to_connection()
     print(core.my_scanner.dc.get_dataframe())
@@ -130,8 +130,8 @@ async def core_program(loop, timeout, start_serial, end_serial, report_path):
     sys.exit()
 
 
-async def main(loop, timeout, start_serial, end_serial, report_path):
-    await core_program(loop, timeout, start_serial, end_serial, report_path)
+async def main(loop, timeout, start_serial, end_serial, TD_length, report_path):
+    await core_program(loop, timeout, start_serial, end_serial, TD_length, report_path)
 
 
 init()
@@ -139,6 +139,7 @@ parser = argparse.ArgumentParser()
 parser.add_argument('start_serial', type=int, help='Start serial number')
 parser.add_argument('end_serial', type=int, help='End serial number')
 parser.add_argument('timeout', type=int, help='Timeout')
+parser.add_argument('TD_length', type=float, help='TD_length')
 parser.add_argument('report_path', type=str, help='Report path')
 
 args = parser.parse_args()
@@ -146,10 +147,11 @@ args = parser.parse_args()
 start_serial = args.start_serial
 end_serial = args.end_serial
 timeout = args.timeout
+TD_length = args.TD_length
 report_path = args.report_path
 loop = asyncio.new_event_loop()
 asyncio.set_event_loop(loop)
-loop.run_until_complete(main(loop, timeout, start_serial, end_serial, report_path))
+loop.run_until_complete(main(loop, timeout, start_serial, end_serial, TD_length, report_path))
 
 if __name__ == '__main__':
     loop = asyncio.new_event_loop()

@@ -118,7 +118,7 @@ class MyScanner:
             #print(Fore.RED + f"Error in run (scanner): {e}") # отладочный вывод
             pass
 
-async def run_scanner():
+async def run_scanner(self):
     # start_serial = int(input('Type start serial (only six numers): '))
     # end_serial = int(input('Type start serial (only six numers): '))
     # timeout = int(input('Type time in seconds for timeout scanning: '))

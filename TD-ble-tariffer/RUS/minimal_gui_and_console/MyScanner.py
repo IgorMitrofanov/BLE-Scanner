@@ -16,14 +16,15 @@ class MyScanner:
     - start_serial: начальный серийный номер устройства
     - end_serial: конечный серийный номер устройства
     - device_type: тип устройства
+    - TD_length (float): длина ДУТа
     - loop: объект asyncio event loop
 
     """
-    def __init__(self, timeout, start_serial, end_serial, device_type, loop):
+    def __init__(self, timeout, start_serial, end_serial, device_type, TD_length, loop):
         self._scanner = BleakScanner(detection_callback=self.detection_callback, loop=loop)
         self.scanning = asyncio.Event()
         self.timeout = timeout
-        self.dc = DataCollector(start_serial, end_serial, device_type)
+        self.dc = DataCollector(start_serial, end_serial, device_type, TD_length)
         self.devices_to_connect = [] 
         self.retry_devices_list = []
         self.loop = loop

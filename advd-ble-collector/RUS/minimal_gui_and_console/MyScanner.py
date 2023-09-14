@@ -67,6 +67,8 @@ class MyScanner:
 
                     self.dc.update_char(device.name, 'Напряжение батареи', TH09_battery)
                     self.dc.update_char(device.name, 'Версия прошивки', TH09_version_raw)
+                    if TH09_battery < 3.4:
+                        print(Fore.RED + f'Напряжение батареи устройства {device.name} меньше порога 3.4В.' + Style.RESET_ALL)
                     self.dc.update_char(device.name, 'Температура', TH09_temp)
                     self.dc.update_char(device.name, 'Влажность', TH09_humidity)
                     self.dc.update_char(device.name, 'Освещенность', TH09_light_raw)

@@ -24,7 +24,7 @@ class Core:
     - connect_device(self, device): метод для подключения к устройству и тарировки.
     - queue_to_connection(self): метод для организации очереди подключения.
     """
-    def __init__(self, loop, timeout, start_serial, end_serial, device_type):
+    def __init__(self, loop, timeout, start_serial, end_serial, device_type, TD_length):
         """
         Конструктор класса Core.
 
@@ -34,6 +34,7 @@ class Core:
         - start_serial (str): начальный серийный номер для сканирования устройств.
         - end_serial (str): конечный серийный номер для сканирования устройств.
         - device_type (str): тип устройства для сканирования.
+        - TD_length (float): длина ДУТа.
         - atrribute_error_flag (bool) костыль для библиотеки bleak
         """
         self.loop = loop

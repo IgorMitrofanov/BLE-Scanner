@@ -62,7 +62,7 @@ class ScannerGUI:
         """
         self.master = master
         master.title("Установка параметров сканирования:")
-        master.geometry("320x180+{}+{}".format(int(master.winfo_screenwidth()/2 - 400), int(master.winfo_screenheight()/2 - 300)))
+        master.geometry("320x300+{}+{}".format(int(master.winfo_screenwidth()/2 - 400), int(master.winfo_screenheight()/2 - 300)))
         master.resizable(False, False)
 
 
@@ -83,6 +83,15 @@ class ScannerGUI:
         self.end_serial_entry = tk.Entry(master)
         self.end_serial_entry.pack()
         self.end_serial_entry.insert(0, "400052")
+
+        self.length_label = tk.Label(master, text="Длина ДУТа:")
+        self.length_label.pack()
+
+        self.TD_length = tk.StringVar(value="1 м")
+        self.length_options = ["1 м", "1.5 м", "2 м", "3 м"]
+        for option in self.length_options:
+            rb = tk.Radiobutton(master, text=option, variable=self.TD_length, value=option)
+            rb.pack()
 
         self.select_report_path_button = tk.Button(master, text="Путь к отчету", command=self.select_report_path)
         self.select_report_path_button.pack()
@@ -112,6 +121,7 @@ class ScannerGUI:
         timeout = int(self.timeout_entry.get())
         start_serial = int(self.start_serial_entry.get())
         end_serial = int(self.end_serial_entry.get())
+        TD_length = float(self.TD_length.get().split()[0])
 
 
         if not hasattr(self, "report_path"):

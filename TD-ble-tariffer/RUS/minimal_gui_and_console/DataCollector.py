@@ -16,6 +16,7 @@ class DataCollector:
     - device_names (list): список имен устройств.
     - start_len (int): начальная длина списка устройств.
     - device_type (str): тип устройства.
+    - TD_length (float): длина ДУТа
 
     Методы:
     - __init__(self, start_serial, end_serial, device_type): конструктор класса.
@@ -23,7 +24,7 @@ class DataCollector:
     - get_dataframe(self): метод для получения данных в виде pandas DataFrame.
     - to_excel(self, xls_path): метод для сохранения данных в файл Excel.
     """
-    def __init__(self, start_serial, end_serial, device_type):
+    def __init__(self, start_serial, end_serial, device_type, TD_length):
         """
         Конструктор класса DataCollector.
 
@@ -37,6 +38,7 @@ class DataCollector:
         self.device_names = [device_type + '_' + str(i) for i in range(start_serial, end_serial+1)]
         self.start_len = len(self.device_names)
         self.device_type = device_type
+        self.TD_length = TD_length
 
         if device_type == 'TD':
 
@@ -91,9 +93,21 @@ class DataCollector:
         wb = openpyxl.load_workbook(xls_path)
         ws = wb.active
 
-        # Определяем цвет заливки
+        # Определяем цвета заливки
+        # Красный - 1ый приоритет ошибки
         red_fill = PatternFill(start_color='FFFF0000', end_color='FFFF0000', fill_type='solid')
-        white_font = Font(color='FFFFFF') # Белый цвет шрифта
+        # Оранжевый - 2-ой приоритет ошибки
+        orange_fill = PatternFill(start_color='FFFFA500', end_color='FFFFA500', fill_type='solid')
+        # Желтый - 3-ий приоритет ошибки
+        yellow_fill = PatternFill(start_color='FFFFFF00', end_color='FFFFFF00', fill_type='solid')
+        # Фиолетовый - 4-ый приоритет ошибки
+        purple_fill = PatternFill(start_color='FF800080', end_color='FF800080', fill_type='solid')
+        # Синий - 5-ый приоритет ошибки
+        blue_fill = PatternFill(start_color='FF0000FF', end_color='FF0000FF', fill_type='solid')
+        # Голубой - 6-ой приоритет ошибки
+        cyan_fill = PatternFill(start_color='FF00FFFF', end_color='FF00FFFF', fill_type='solid')
+        # Белый цвет шрифта
+        white_font = Font(color='FFFFFF') 
 
         avg_temp = np.mean([row[6].value for row in ws.iter_rows(min_row=2)])
 
@@ -103,27 +117,78 @@ class DataCollector:
             hk = row[9].value 
             lk = row[10].value 
             fl = row[11].value
-            if hk and lk and fl is not None:
-                if fl > 15:
-                    row[12].value = "Уровень топлива более 15 единиц"
+            b_voltage = row[5].value
+            errors_message = ''
+            if hk and lk and fl and temp and b_voltage is not None:
+                # 6-ой приоритет ошибки
+                if abs(temp - avg_temp) > 5:
+                    errors_message.join("Температура отличается от средней более чем на 5 единиц ")
+                    for cell in row:
+                        cell.fill = cyan_fill 
+                        cell.font = white_font
+                # 5-ый приоритет ошибки
+                elif b_voltage < 3.4:
+                    errors_message.join("Напряжение батареи меньше порога в 3.4В, проверьте изделие ")
+                    row[12].value = "Напряжение батареи меньше порога в 3.4В, проверьте изделие"
+                    for cell in row:
+                        cell.fill = blue_fill
+                        cell.font = white_font
+                # 4-ый приоритет ошибки
+                elif fl > 15:
+                    errors_message.join("Текущий > 15 ")
+                    for cell in row:
+                        cell.fill = purple_fill
+                        cell.font = white_font
+                # 3-ий приоритет ошибки
+                elif lk < 19000 and self.TD_length == 1:
+                    errors_message.join("Нижний < 19000 (ДУТ 1 м) ")
+                    for cell in row:
+                        cell.fill = yellow_fill
+                        cell.font = white_font
+                elif lk < 28000 and self.TD_length == 1.5:
+                    errors_message.join("Нижний < 28000 (ДУТ 1.5 м) ")
+                    for cell in row:
+                        cell.fill = yellow_fill
+                        cell.font = white_font
+                elif lk < 37000 and self.TD_length == 2:
+                    errors_message.join("Нижний < 37000 (ДУТ 2 м) ")
+                    for cell in row:
+                        cell.fill = yellow_fill
+                        cell.font = white_font
+                elif lk < 46000 and self.TD_length == 3:
+                    errors_message.join("Нижний < 46000 (ДУТ 3 м) ")
+                    for cell in row:
+                        cell.fill = yellow_fill
+                        cell.font = white_font
+                # 2-ой приоритет ошибки
+                elif hk > 45000 and self.TD_length == 1:
+                    errors_message.join("Верхний > 45000 (ДУТ 1 м) ")
+                    for cell in row:
+                        cell.fill = orange_fill
+                        cell.font = white_font
+                elif hk > 54000 and self.TD_length == 1.5:
+                    errors_message.join("Верхний > 54000 (ДУТ 1.5 м) ")
+                    for cell in row:
+                        cell.fill = orange_fill
+                        cell.font = white_font
+                elif hk > 66000 and self.TD_length == 2:
+                    errors_message.join("Верхний > 66000 (ДУТ 2 м) ")
+                    for cell in row:
+                        cell.fill = orange_fill
+                        cell.font = white_font
+                elif hk > 77000 and self.TD_length == 3:
+                    errors_message.join("Верхний > 77000 (ДУТ 3 м) ")
+                    for cell in row:
+                        cell.fill = orange_fill
+                        cell.font = white_font
+                # 1-ый приоритет ошибки
+                elif fl == 7000:
+                    errors_message.join("Текущий = 7000 ")
                     for cell in row:
                         cell.fill = red_fill
                         cell.font = white_font
-                elif lk < 20000:
-                    row[12].value = "L < 20000"
-                    for cell in row:
-                        cell.fill = red_fill
-                        cell.font = white_font
-                elif hk > 43000:
-                    row[12].value = "L < 20000"
-                    for cell in row:
-                        cell.fill = red_fill
-                        cell.font = white_font
-                elif abs(temp - avg_temp) > 5:
-                    row[12].value = "Температура отличается от средней более чем на 5 единиц"
-                    for cell in row:
-                        cell.fill = red_fill
-                        cell.font = white_font
+
+                
         if atrribute_error_flag == True:
             last_row = ws.max_row + 1
             ws.cell(row=last_row, column=1).value = "НЕКОТОРЫЕ УСТРОЙСТВА НЕ СМОГИ ЗАВЕРШИТЬ ТАРИРОВКУ, ТРЕБУЕТСЯ ПОВТОРНЫЙ ЗАПУСК ПРОГРАММЫ"
